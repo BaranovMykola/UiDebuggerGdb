@@ -21,6 +21,8 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->command, SIGNAL(returnPressed()), this, SLOT(slotWriteToProcess()), Qt::UniqueConnection);
     ui->command->setText("target exec debug/gdb/compl.exe");
     ui->command->setFocus();
+    connect(ui->butLocalVar, SIGNAL(clicked(bool)), this, SLOT(slotGetLocalVar()), Qt::UniqueConnection);
+    connect(mProcess, SIGNAL(signalLocalVarRecieved(QString)), this, SLOT(slotReadLocalVar(QString)), Qt::UniqueConnection);
 }
 
 MainWindow::~MainWindow()
@@ -47,4 +49,18 @@ void MainWindow::slotWriteToProcess()
     mProcess->write(data);
 
     ui->command->clear();
+}
+
+void MainWindow::slotGetLocalVar()
+{
+    mProcess->getLocalVar();
+
+    ui->echo->appendPlainText(mProcess->peekLocalVar());
+}
+
+void MainWindow::slotReadLocalVar(const QString &str)
+{
+    ui->echo->appendPlainText("\n*********************\n");
+    ui->echo->appendPlainText(str);
+    ui->echo->appendPlainText("\n*********************\n");
 }

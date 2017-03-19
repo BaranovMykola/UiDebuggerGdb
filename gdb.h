@@ -3,6 +3,7 @@
 
 #include <QProcess>
 #include <QFile>
+#include <QStringList>
 
 class Gdb : public QProcess
 {
@@ -16,12 +17,19 @@ public:
     void readStdOutput();
     void readErrOutput();
     const QString& getOutput()const;
+    QStringList getLocalVar();
+    const QString& peekLocalVar()const;
 public slots:
     void slotReadStdOutput();
     void slotReadErrOutput();
+    void slotReadLocalVar();
+signals:
+    void signalLocalVarRecieved(const QString&);
 private:
     QFile mGdbFile;
     QString mBuffer;
+    QString mLocalVar;
+    bool mCaptureLocalVar;
 };
 
 #endif // GDB_H
