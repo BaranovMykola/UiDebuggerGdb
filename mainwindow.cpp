@@ -55,12 +55,12 @@ void MainWindow::slotGetLocalVar()
 {
     mProcess->getLocalVar();
 
-    ui->echo->appendPlainText(mProcess->peekLocalVar());
+    //ui->echo->appendPlainText(mProcess->peekLocalVar());
 }
 
 void MainWindow::slotReadLocalVar(const QString &str)
 {
-    ui->echo->appendPlainText("\n*********************\n");
+    ui->echo->appendPlainText("\n*********************\t\t\t{\n");
     ui->echo->appendPlainText(str);
-    ui->echo->appendPlainText("\n*********************\n");
+    ui->echo->appendPlainText("\n*********************\t\t\t}\n");
 }

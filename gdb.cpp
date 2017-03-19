@@ -9,7 +9,8 @@ Gdb::Gdb()
 }
 
 Gdb::Gdb(QString gdbPath):
-    mCaptureLocalVar(false)
+    mCaptureLocalVar(false),
+    mCaptureLocalVarSeveralTimes{0}
 {
     mGdbFile.setFileName(gdbPath);
     connect(this, SIGNAL(readyReadStandardOutput()), this, SLOT(slotReadStdOutput()), Qt::UniqueConnection);
@@ -31,11 +32,15 @@ void Gdb::write(QByteArray &command)
 void Gdb::readStdOutput()
 {
     mBuffer = QProcess::readAll();
-    if(mCaptureLocalVar)
+    if(mCaptureLocalVarSeveralTimes != 0)
     {
-        mLocalVar = mBuffer;
+        --mCaptureLocalVarSeveralTimes;
+        mLocalVar.append( mBuffer);
         mCaptureLocalVar = false;
-        emit signalLocalVarRecieved(mLocalVar);
+        if(mCaptureLocalVarSeveralTimes == 0)
+        {
+            emit signalLocalVarRecieved(mBuffer);
+        }
     }
 }
 
@@ -57,9 +62,11 @@ QStringList Gdb::getLocalVar()
     {
 //        disconnect(this, SIGNAL(readyReadStandardOutput()), this, SLOT(slotReadStdOutput()));
 //        connect(this, SIGNAL(readyReadStandardOutput()), this, SLOT(slotReadLocalVar()), Qt::UniqueConnection);
+        mCaptureLocalVar = true;
+        mLocalVar.clear();
+        mCaptureLocalVarSeveralTimes = 2;
         QProcess::write("info local\n");
     //    QProcess::waitForBytesWritten(500);
-        mCaptureLocalVar = true;
     }
     return QStringList() << mBuffer;
 }

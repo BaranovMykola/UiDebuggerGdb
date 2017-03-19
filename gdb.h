@@ -30,6 +30,7 @@ private:
     QString mBuffer;
     QString mLocalVar;
     bool mCaptureLocalVar;
+    int mCaptureLocalVarSeveralTimes;
 };
 
 #endif // GDB_H
