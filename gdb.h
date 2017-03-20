@@ -22,6 +22,9 @@ public:
     void openProject(const QString& fileName);
     void run();
     void stepOver();
+    void setBreakPoint(unsigned int line);
+    void clearBreakPoint(unsigned int line);
+    void stepIn();
 public slots:
     void slotReadStdOutput();
     void slotReadErrOutput();

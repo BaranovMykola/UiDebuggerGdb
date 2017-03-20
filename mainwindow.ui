@@ -25,6 +25,27 @@
        </widget>
       </item>
       <item>
+       <widget class="QPushButton" name="butBreakPoint">
+        <property name="text">
+         <string>Set Breakpoint</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="butClearBreakpoint">
+        <property name="text">
+         <string>Clear Breakpoint</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="butStepIn">
+        <property name="text">
+         <string>Step In</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QPushButton" name="butStepOver">
         <property name="text">
          <string>Step Over</string>

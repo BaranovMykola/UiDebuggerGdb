@@ -19,6 +19,9 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->butLocalVar, SIGNAL(clicked(bool)), this, SLOT(slotGetLocalVar()), Qt::UniqueConnection);
     connect(ui->butRun, SIGNAL(clicked(bool)), this, SLOT(slotRun()), Qt::UniqueConnection);
     connect(ui->butStepOver, SIGNAL(clicked(bool)), this, SLOT(slotStepOver()), Qt::UniqueConnection);
+    connect(ui->butBreakPoint, SIGNAL(clicked(bool)), this, SLOT(slotSetBreakPoint()), Qt::UniqueConnection);
+    connect(ui->butClearBreakpoint, SIGNAL(clicked(bool)), this, SLOT(slotClearBreakPoint()), Qt::UniqueConnection);
+    connect(ui->butStepIn, SIGNAL(clicked(bool)), this, SLOT(slotStepIn()), Qt::UniqueConnection);
 
     QFile file(qApp->applicationDirPath().append("/gdb/gdb.exe"));
     qDebug() << "File exist: " << (file.exists());
@@ -84,4 +87,19 @@ void MainWindow::slotRun()
 void MainWindow::slotStepOver()
 {
     mProcess->stepOver();
+}
+
+void MainWindow::slotSetBreakPoint()
+{
+    mProcess->setBreakPoint(40);
+}
+
+void MainWindow::slotClearBreakPoint()
+{
+    mProcess->clearBreakPoint(40);
+}
+
+void MainWindow::slotStepIn()
+{
+    mProcess->stepIn();
 }

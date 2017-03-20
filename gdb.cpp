@@ -88,6 +88,21 @@ void Gdb::stepOver()
     write(QByteArray("next"));
 }
 
+void Gdb::setBreakPoint(unsigned int line)
+{   //set simple breakpoint at line $line$
+    write(QByteArray("b ").append(QString::number(line)));
+}
+
+void Gdb::clearBreakPoint(unsigned int line)
+{
+    write(QByteArray("clear ").append(QString::number(line)));
+}
+
+void Gdb::stepIn()
+{   //step into function under cursor
+    write(QByteArray("step"));
+}
+
 void Gdb::slotReadStdOutput()
 {
     readStdOutput();

@@ -25,6 +25,9 @@ private slots:
     void slotReadLocalVar(const QString& str);
     void slotRun();
     void slotStepOver();
+    void slotSetBreakPoint();
+    void slotClearBreakPoint();
+    void slotStepIn();
 private:
     Ui::MainWindow *ui;
     Gdb *mProcess;
