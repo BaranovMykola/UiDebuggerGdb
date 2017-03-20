@@ -53,6 +53,20 @@
        </widget>
       </item>
       <item>
+       <widget class="QPushButton" name="butStepOut">
+        <property name="text">
+         <string>Step Out</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="butCurrLine">
+        <property name="text">
+         <string>Current Line</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QPushButton" name="butLocalVar">
         <property name="text">
          <string>Get local var</string>

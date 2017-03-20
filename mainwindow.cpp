@@ -22,6 +22,9 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->butBreakPoint, SIGNAL(clicked(bool)), this, SLOT(slotSetBreakPoint()), Qt::UniqueConnection);
     connect(ui->butClearBreakpoint, SIGNAL(clicked(bool)), this, SLOT(slotClearBreakPoint()), Qt::UniqueConnection);
     connect(ui->butStepIn, SIGNAL(clicked(bool)), this, SLOT(slotStepIn()), Qt::UniqueConnection);
+    connect(ui->butStepOut, SIGNAL(clicked(bool)), this, SLOT(slotStepOut()), Qt::UniqueConnection);
+    connect(ui->butCurrLine, SIGNAL(clicked(bool)), this, SLOT(slotCurrentLine()), Qt::UniqueConnection);
+
 
     QFile file(qApp->applicationDirPath().append("/gdb/gdb.exe"));
     qDebug() << "File exist: " << (file.exists());
@@ -102,4 +105,14 @@ void MainWindow::slotClearBreakPoint()
 void MainWindow::slotStepIn()
 {
     mProcess->stepIn();
+}
+
+void MainWindow::slotStepOut()
+{
+    mProcess->stepOut();
+}
+
+void MainWindow::slotCurrentLine()
+{
+    qDebug() << "Current line is:" << mProcess->getCurrentLine();
 }

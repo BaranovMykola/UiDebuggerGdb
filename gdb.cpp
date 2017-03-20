@@ -2,6 +2,7 @@
 
 #include <QDebug>
 #include <iostream>
+#include <QRegExp>
 
 Gdb::Gdb()
 {
@@ -101,6 +102,25 @@ void Gdb::clearBreakPoint(unsigned int line)
 void Gdb::stepIn()
 {   //step into function under cursor
     write(QByteArray("step"));
+}
+
+void Gdb::stepOut()
+{   //step out of current function\method
+    write(QByteArray("finish"));
+}
+
+int Gdb::getCurrentLine()
+{
+    write(QByteArray("frame"));
+    QProcess::waitForReadyRead();
+    QRegExp rx(":\\d+");
+    if(rx.indexIn(mBuffer) == -1)
+    {
+        return -1;
+    }
+    QStringList lst = rx.capturedTexts();
+    QString line = lst[0];
+    return line.split(':').last().toInt();
 }
 
 void Gdb::slotReadStdOutput()

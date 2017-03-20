@@ -25,6 +25,8 @@ public:
     void setBreakPoint(unsigned int line);
     void clearBreakPoint(unsigned int line);
     void stepIn();
+    void stepOut();
+    int getCurrentLine();
 public slots:
     void slotReadStdOutput();
     void slotReadErrOutput();
