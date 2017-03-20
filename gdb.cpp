@@ -53,7 +53,6 @@ void Gdb::readErrOutput()
 const QString &Gdb::getOutput() const
 {
     return mBuffer;
-//    return mLocalVar;
 }
 
 QStringList Gdb::getLocalVar()
@@ -74,9 +73,19 @@ const QString &Gdb::peekLocalVar() const
 }
 
 void Gdb::openProject(const QString &fileName)
-{
+{   //opens file $fileName$ in gdb to debug it via target exec and file
     write(QByteArray("target exec ").append(fileName));
     write(QByteArray("file ").append(fileName));
+}
+
+void Gdb::run()
+{   //run debugging
+    write(QByteArray("run"));
+}
+
+void Gdb::stepOver()
+{   //goes to the next line of code
+    write(QByteArray("next"));
 }
 
 void Gdb::slotReadStdOutput()

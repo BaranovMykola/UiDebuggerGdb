@@ -17,6 +17,8 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(mProcess, SIGNAL(signalLocalVarRecieved(QString)), this, SLOT(slotReadLocalVar(QString)), Qt::UniqueConnection);
     connect(ui->command, SIGNAL(returnPressed()), this, SLOT(slotWriteToProcess()), Qt::UniqueConnection);
     connect(ui->butLocalVar, SIGNAL(clicked(bool)), this, SLOT(slotGetLocalVar()), Qt::UniqueConnection);
+    connect(ui->butRun, SIGNAL(clicked(bool)), this, SLOT(slotRun()), Qt::UniqueConnection);
+    connect(ui->butStepOver, SIGNAL(clicked(bool)), this, SLOT(slotStepOver()), Qt::UniqueConnection);
 
     QFile file(qApp->applicationDirPath().append("/gdb/gdb.exe"));
     qDebug() << "File exist: " << (file.exists());
@@ -72,4 +74,14 @@ void MainWindow::slotReadLocalVar(const QString &str)
         ui->echo->appendPlainText("\n");
     }
     ui->echo->appendPlainText("\n*********************\t\t\t}\n");
+}
+
+void MainWindow::slotRun()
+{
+    mProcess->run();
+}
+
+void MainWindow::slotStepOver()
+{
+    mProcess->stepOver();
 }

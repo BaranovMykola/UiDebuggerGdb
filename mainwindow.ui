@@ -18,6 +18,20 @@
     <item row="0" column="2">
      <layout class="QVBoxLayout" name="verticalLayout">
       <item>
+       <widget class="QPushButton" name="butRun">
+        <property name="text">
+         <string>Run</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="butStepOver">
+        <property name="text">
+         <string>Step Over</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QPushButton" name="butLocalVar">
         <property name="text">
          <string>Get local var</string>

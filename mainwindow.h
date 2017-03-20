@@ -23,6 +23,8 @@ private slots:
     void slotWriteToProcess();
     void slotGetLocalVar();
     void slotReadLocalVar(const QString& str);
+    void slotRun();
+    void slotStepOver();
 private:
     Ui::MainWindow *ui;
     Gdb *mProcess;
