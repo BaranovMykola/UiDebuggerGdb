@@ -14,15 +14,17 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(mProcess, SIGNAL(readyReadStandardOutput()), this, SLOT(slotReadOutput()), Qt::UniqueConnection);
     connect(mProcess, SIGNAL(readyReadStandardError()), this, SLOT(slotReadOutput()), Qt::UniqueConnection);
+    connect(mProcess, SIGNAL(signalLocalVarRecieved(QString)), this, SLOT(slotReadLocalVar(QString)), Qt::UniqueConnection);
+    connect(ui->command, SIGNAL(returnPressed()), this, SLOT(slotWriteToProcess()), Qt::UniqueConnection);
+    connect(ui->butLocalVar, SIGNAL(clicked(bool)), this, SLOT(slotGetLocalVar()), Qt::UniqueConnection);
+
     QFile file(qApp->applicationDirPath().append("/gdb/gdb.exe"));
     qDebug() << "File exist: " << (file.exists());
     mProcess->start(QStringList() << "--interpreter=mi");
 
-    connect(ui->command, SIGNAL(returnPressed()), this, SLOT(slotWriteToProcess()), Qt::UniqueConnection);
-    ui->command->setText("target exec debug/gdb/compl.exe");
+//    ui->command->setText("target exec debug/gdb/compl.exe");
+    mProcess->openProject("debug/gdb/compl.exe");
     ui->command->setFocus();
-    connect(ui->butLocalVar, SIGNAL(clicked(bool)), this, SLOT(slotGetLocalVar()), Qt::UniqueConnection);
-    connect(mProcess, SIGNAL(signalLocalVarRecieved(QString)), this, SLOT(slotReadLocalVar(QString)), Qt::UniqueConnection);
 }
 
 MainWindow::~MainWindow()
@@ -61,6 +63,13 @@ void MainWindow::slotGetLocalVar()
 void MainWindow::slotReadLocalVar(const QString &str)
 {
     ui->echo->appendPlainText("\n*********************\t\t\t{\n");
-    ui->echo->appendPlainText(str);
+    auto lst = str.split("\\n");
+    for(QString i : lst)
+    {
+        i.replace("\"", "");
+        i.replace("~", "");
+        ui->echo->appendPlainText(i);
+        ui->echo->appendPlainText("\n");
+    }
     ui->echo->appendPlainText("\n*********************\t\t\t}\n");
 }

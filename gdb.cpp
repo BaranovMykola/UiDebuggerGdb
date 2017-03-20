@@ -60,13 +60,10 @@ QStringList Gdb::getLocalVar()
 {
     if(QProcess::state() == QProcess::Running)
     {
-//        disconnect(this, SIGNAL(readyReadStandardOutput()), this, SLOT(slotReadStdOutput()));
-//        connect(this, SIGNAL(readyReadStandardOutput()), this, SLOT(slotReadLocalVar()), Qt::UniqueConnection);
         mCaptureLocalVar = true;
         mLocalVar.clear();
         mCaptureLocalVarSeveralTimes = 2;
         QProcess::write("info local\n");
-    //    QProcess::waitForBytesWritten(500);
     }
     return QStringList() << mBuffer;
 }
@@ -74,6 +71,12 @@ QStringList Gdb::getLocalVar()
 const QString &Gdb::peekLocalVar() const
 {
     return mLocalVar;
+}
+
+void Gdb::openProject(const QString &fileName)
+{
+    write(QByteArray("target exec ").append(fileName));
+    write(QByteArray("file ").append(fileName));
 }
 
 void Gdb::slotReadStdOutput()

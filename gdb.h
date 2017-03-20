@@ -19,6 +19,7 @@ public:
     const QString& getOutput()const;
     QStringList getLocalVar();
     const QString& peekLocalVar()const;
+    void openProject(const QString& fileName);
 public slots:
     void slotReadStdOutput();
     void slotReadErrOutput();
