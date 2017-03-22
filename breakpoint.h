@@ -10,7 +10,7 @@ public:
     void parse(const QString& line);// todo;
     Breakpoint();
     Breakpoint(int line, QString what, bool enabled, Disposition disposition);
-private:
+//private:
     int mLine;
     QString mWhat;
     bool mEnabled;

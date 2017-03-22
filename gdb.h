@@ -31,7 +31,8 @@ public:
     void stepIn();
     void stepOut();
     int getCurrentLine();
-    void updateBreakpointsList();//todo
+    void updateBreakpointsList();
+    std::vector<Breakpoint> getBreakpoints()const;
 public slots:
     void slotReadStdOutput();
     void slotReadErrOutput();

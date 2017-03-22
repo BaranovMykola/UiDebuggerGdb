@@ -145,6 +145,11 @@ void Gdb::updateBreakpointsList()
     }
 }
 
+std::vector<Breakpoint> Gdb::getBreakpoints() const
+{
+    return mBreakpointsList;
+}
+
 void Gdb::slotReadStdOutput()
 {
     readStdOutput();
