@@ -5,6 +5,10 @@
 #include <QFile>
 #include <QStringList>
 
+#include <vector>
+
+#include "breakpoint.h"
+
 class Gdb : public QProcess
 {
     Q_OBJECT
@@ -27,6 +31,7 @@ public:
     void stepIn();
     void stepOut();
     int getCurrentLine();
+    void updateBreakpointsList();//todo
 public slots:
     void slotReadStdOutput();
     void slotReadErrOutput();
@@ -39,6 +44,7 @@ private:
     QString mLocalVar;
     bool mCaptureLocalVar;
     int mCaptureLocalVarSeveralTimes;
+    std::vector<Breakpoint> mBreakpointsList;
 };
 
 #endif // GDB_H

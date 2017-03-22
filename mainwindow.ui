@@ -67,6 +67,13 @@
        </widget>
       </item>
       <item>
+       <widget class="QPushButton" name="butShwBrk">
+        <property name="text">
+         <string>Show Breakpoints</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QPushButton" name="butLocalVar">
         <property name="text">
          <string>Get local var</string>

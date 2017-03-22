@@ -30,6 +30,7 @@ private slots:
     void slotStepIn();
     void slotStepOut();
     void slotCurrentLine();
+    void slotShowBreakpoints();
 private:
     Ui::MainWindow *ui;
     Gdb *mProcess;

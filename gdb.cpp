@@ -33,6 +33,7 @@ void Gdb::write(QByteArray &command)
 void Gdb::readStdOutput()
 {
     mBuffer = QProcess::readAll();
+    //qDebug() << "readStdOutpur " << mBuffer << "\n\n";
     if(mCaptureLocalVarSeveralTimes != 0)
     {
         --mCaptureLocalVarSeveralTimes;
@@ -110,7 +111,7 @@ void Gdb::stepOut()
 }
 
 int Gdb::getCurrentLine()
-{
+{   //returns current line of code or -1 if any aerror occured
     write(QByteArray("frame"));
     QProcess::waitForReadyRead();
     QRegExp rx(":\\d+");
@@ -121,6 +122,27 @@ int Gdb::getCurrentLine()
     QStringList lst = rx.capturedTexts();
     QString line = lst[0];
     return line.split(':').last().toInt();
+}
+
+void Gdb::updateBreakpointsList()
+{
+    write(QByteArray("info b"));
+    QProcess::waitForReadyRead(1000);
+    QStringList lines = mBuffer.split('~');
+    for(auto i : lines)
+    {
+        qDebug() << i << "\n";
+    }
+    mBreakpointsList.clear();
+
+    QString topic = lines[0];
+    for(int i=2;i<lines.size();++i)
+    {
+        Breakpoint addBrk;
+        QString currentLine = lines[i];
+        addBrk.parse(currentLine);
+        mBreakpointsList.push_back(addBrk);
+    }
 }
 
 void Gdb::slotReadStdOutput()
