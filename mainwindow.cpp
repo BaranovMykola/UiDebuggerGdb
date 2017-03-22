@@ -25,6 +25,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->butStepOut, SIGNAL(clicked(bool)), this, SLOT(slotStepOut()), Qt::UniqueConnection);
     connect(ui->butCurrLine, SIGNAL(clicked(bool)), this, SLOT(slotCurrentLine()), Qt::UniqueConnection);
     connect(ui->butShwBrk, SIGNAL(clicked(bool)), this, SLOT(slotShowBreakpoints()), Qt::UniqueConnection);
+    connect(ui->butVar, SIGNAL(clicked(bool)), this, SLOT(slotShowVar()), Qt::UniqueConnection);
 
     QFile file(qApp->applicationDirPath().append("/gdb/gdb.exe"));
     qDebug() << "File exist: " << (file.exists());
@@ -124,8 +125,24 @@ void MainWindow::slotShowBreakpoints()
     for(Breakpoint i : brkLst)
     {
         QString disposition = (i.mDisposition == Breakpoint::Disposition::Keep) ? "Keep" : "Delete";
-        ui->echo->appendPlainText(QString("Breakpoint. Disposition: %1 Function: %2 Line: %3 Enabled %4\n").arg(disposition)
+        ui->designOutput->appendPlainText(QString("Breakpoint. Disposition: %1 Function: %2 Line: %3 Enabled %4\n").arg(disposition)
                                   .arg(i.mWhat).arg(QString::number(i.mLine))
                                   .arg(i.mEnabled ? "True" : "False"));
+    }
+}
+
+void MainWindow::slotShowVar()
+{
+    try
+    {
+        auto content = mProcess->getVarContent("conj");
+        for(auto i : content)
+        {
+            ui->designOutput->appendPlainText(i.append("\n"));
+        }
+    }
+    catch(...)
+    {
+        ui->designOutput->appendPlainText("Exception handled\n");
     }
 }

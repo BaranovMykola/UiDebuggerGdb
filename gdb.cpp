@@ -150,6 +150,22 @@ std::vector<Breakpoint> Gdb::getBreakpoints() const
     return mBreakpointsList;
 }
 
+QStringList Gdb::getVarContent(const QString& var)
+{
+    write(QByteArray("print ").append(var));
+    QProcess::waitForReadyRead(1000);
+    QRegExp errorMatch("\\^done");
+    if(errorMatch.indexIn(mBuffer) == -1)
+    {
+        throw std::exception("Error while var reading");
+    }
+    QRegExp content("=\\s.*\\^done");
+    QRegExp clean("[\\n\"~]");
+    qDebug() << ((content.indexIn(mBuffer) == -1) ? "Nothing captured" : "Captured smth succsesfully");
+    return QStringList() << content.cap().replace(clean, "").replace("^done", "");
+
+}
+
 void Gdb::slotReadStdOutput()
 {
     readStdOutput();
