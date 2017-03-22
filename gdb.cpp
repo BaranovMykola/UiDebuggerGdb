@@ -59,14 +59,19 @@ const QString &Gdb::getOutput() const
 
 QStringList Gdb::getLocalVar()
 {
-    if(QProcess::state() == QProcess::Running)
+    write(QByteArray("info local"));
+    QProcess::waitForReadyRead(1000);
+    QRegExp varMatch("\"\\w+\\s=");
+    qDebug() << ((varMatch.indexIn(mBuffer) == -1) ? "Nothing found":"Something found");
+    int pos = 0;
+    QStringList locals;
+    while(pos != -1)
     {
-        mCaptureLocalVar = true;
-        mLocalVar.clear();
-        mCaptureLocalVarSeveralTimes = 2;
-        QProcess::write("info local\n");
+        pos = varMatch.indexIn(mBuffer, pos+1);
+        QRegExp clean("\"|\\s|=");
+        locals << varMatch.cap().replace(clean, "");
     }
-    return QStringList() << mBuffer;
+    return locals;
 }
 
 const QString &Gdb::peekLocalVar() const

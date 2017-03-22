@@ -26,6 +26,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->butCurrLine, SIGNAL(clicked(bool)), this, SLOT(slotCurrentLine()), Qt::UniqueConnection);
     connect(ui->butShwBrk, SIGNAL(clicked(bool)), this, SLOT(slotShowBreakpoints()), Qt::UniqueConnection);
     connect(ui->butVar, SIGNAL(clicked(bool)), this, SLOT(slotShowVar()), Qt::UniqueConnection);
+    connect(ui->butLocal, SIGNAL(clicked(bool)), this, SLOT(slotShowLocal()), Qt::UniqueConnection);
 
     QFile file(qApp->applicationDirPath().append("/gdb/gdb.exe"));
     qDebug() << "File exist: " << (file.exists());
@@ -141,5 +142,14 @@ void MainWindow::slotShowVar()
     catch(...)
     {
         ui->designOutput->appendPlainText("Exception handled\n");
+    }
+}
+
+void MainWindow::slotShowLocal()
+{
+    auto vars = mProcess->getLocalVar();
+    for(auto i : vars)
+    {
+        ui->designOutput->appendPlainText(i.append("\n"));
     }
 }

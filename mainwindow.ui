@@ -81,6 +81,13 @@
        </widget>
       </item>
       <item>
+       <widget class="QPushButton" name="butLocal">
+        <property name="text">
+         <string>Show locals</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QPushButton" name="butLocalVar">
         <property name="text">
          <string>Get local var</string>
