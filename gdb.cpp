@@ -69,7 +69,11 @@ QStringList Gdb::getLocalVar()
     {
         pos = varMatch.indexIn(mBuffer, pos+1);
         QRegExp clean("\"|\\s|=");
-        locals << varMatch.cap().replace(clean, "");
+        QString varName = varMatch.cap().replace(clean, "").trimmed();
+        if(!varName.isEmpty())
+        {
+            locals << varName;
+        }
     }
     return locals;
 }

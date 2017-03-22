@@ -150,6 +150,6 @@ void MainWindow::slotShowLocal()
     auto vars = mProcess->getLocalVar();
     for(auto i : vars)
     {
-        ui->designOutput->appendPlainText(i.append("\n"));
+        ui->designOutput->appendPlainText(i.append(mProcess->getVarContent(i)).append("\n"));
     }
 }
