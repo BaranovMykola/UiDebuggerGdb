@@ -136,10 +136,7 @@ void MainWindow::slotShowVar()
     try
     {
         auto content = mProcess->getVarContent("conj");
-        for(auto i : content)
-        {
-            ui->designOutput->appendPlainText(i.append("\n"));
-        }
+            ui->designOutput->appendPlainText(content);
     }
     catch(...)
     {

@@ -156,7 +156,7 @@ std::vector<Breakpoint> Gdb::getBreakpoints() const
     return mBreakpointsList;
 }
 
-QStringList Gdb::getVarContent(const QString& var)
+QString Gdb::getVarContent(const QString& var)
 {
     write(QByteArray("print ").append(var));
     QProcess::waitForReadyRead(1000);
@@ -166,9 +166,18 @@ QStringList Gdb::getVarContent(const QString& var)
         throw std::exception("Error while var reading");
     }
     QRegExp content("=\\s.*\\^done");
-    QRegExp clean("[\\n\"~]");
+    QRegExp clean("[\\\\|\|\"|~]");
+//    QRegExp clean("\\\\n");
     qDebug() << ((content.indexIn(mBuffer) == -1) ? "Nothing captured" : "Captured smth succsesfully");
-    return QStringList() << content.cap().replace(clean, "").replace("^done", "");
+    QString res = content.cap().replace(clean, "").replace("^done", "").trimmed();
+    res.resize(res.size()-1);
+    auto lst = res.split('\n');
+    for(QString& i : lst)
+    {
+        i = i.trimmed();
+    }
+    QString withoutLines = lst.join("");
+    return withoutLines;
 
 }
 

@@ -33,7 +33,7 @@ public:
     int getCurrentLine();
     void updateBreakpointsList();
     std::vector<Breakpoint> getBreakpoints()const;
-    QStringList getVarContent(const QString& var);
+    QString getVarContent(const QString& var);
 public slots:
     void slotReadStdOutput();
     void slotReadErrOutput();
