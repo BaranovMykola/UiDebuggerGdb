@@ -140,8 +140,14 @@ void Gdb::updateBreakpointsList()
     {
         Breakpoint addBrk;
         QString currentLine = lines[i];
-        addBrk.parse(currentLine);
-        mBreakpointsList.push_back(addBrk);
+        try
+        {
+            addBrk.parse(currentLine);
+            mBreakpointsList.push_back(addBrk);
+        }
+        catch(std::exception)
+        {
+        }
     }
 }
 

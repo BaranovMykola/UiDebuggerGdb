@@ -6,6 +6,11 @@
 
 void Breakpoint::parse(const QString &line)
 {   // line should looks like $"1       breakpoint     keep y   0x0040149e in main() at main.cpp:40\n"$
+      QRegExp errorMatch("(keep|del)");
+      if(errorMatch.indexIn(line) == -1)
+      {
+          throw std::exception("Format exception");
+      }
       QRegExp disposition(" keep ");
       QRegExp enabled(" y ");
       QRegExp frame("\\s[:\\w]*\\([\\w\\s:,]*\\)\\s");
