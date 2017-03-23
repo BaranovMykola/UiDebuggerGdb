@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "breakpoint.h"
+#include "variable.h"
 
 class Gdb : public QProcess
 {
@@ -32,7 +33,9 @@ public:
     void stepOut();
     int getCurrentLine();
     void updateBreakpointsList();
+    void updateLocalVariables();
     std::vector<Breakpoint> getBreakpoints()const;
+    std::vector<Variable> getLocalVariables()const;
     QString getVarContent(const QString& var);
 public slots:
     void slotReadStdOutput();
@@ -47,6 +50,7 @@ private:
     bool mCaptureLocalVar;
     int mCaptureLocalVarSeveralTimes;
     std::vector<Breakpoint> mBreakpointsList;
+    std::vector<Variable> mVariablesList;
 };
 
 #endif // GDB_H

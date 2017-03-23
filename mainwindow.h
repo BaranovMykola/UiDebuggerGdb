@@ -33,6 +33,7 @@ private slots:
     void slotShowBreakpoints();
     void slotShowVar();
     void slotShowLocal();
+    void slotUpdtaeLocals();
 private:
     Ui::MainWindow *ui;
     Gdb *mProcess;

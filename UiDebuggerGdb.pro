@@ -26,10 +26,12 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += main.cpp\
         mainwindow.cpp \
     gdb.cpp \
-    breakpoint.cpp
+    breakpoint.cpp \
+    variable.cpp
 
 HEADERS  += mainwindow.h \
     gdb.h \
-    breakpoint.h
+    breakpoint.h \
+    variable.h
 
 FORMS    += mainwindow.ui

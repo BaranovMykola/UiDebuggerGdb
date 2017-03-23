@@ -58,7 +58,7 @@ const QString &Gdb::getOutput() const
 }
 
 QStringList Gdb::getLocalVar()
-{
+{   //finds and returns all local variable names
     write(QByteArray("info local"));
     QProcess::waitForReadyRead(1000);
     QRegExp varMatch("\"\\w+\\s=");
@@ -160,9 +160,25 @@ void Gdb::updateBreakpointsList()
     }
 }
 
+void Gdb::updateLocalVariables()
+{
+    QStringList locals = getLocalVar();
+    mVariablesList.clear();
+    for(auto i : locals)
+    {
+        Variable var(i, "type TODO!!!", getVarContent(i)); //todo
+        mVariablesList.push_back(var);
+    }
+}
+
 std::vector<Breakpoint> Gdb::getBreakpoints() const
 {
     return mBreakpointsList;
+}
+
+std::vector<Variable> Gdb::getLocalVariables() const
+{
+    return mVariablesList;
 }
 
 QString Gdb::getVarContent(const QString& var)
@@ -186,6 +202,7 @@ QString Gdb::getVarContent(const QString& var)
         i = i.trimmed();
     }
     QString withoutLines = lst.join("");
+    withoutLines.remove(0, 2);
     return withoutLines;
 
 }
