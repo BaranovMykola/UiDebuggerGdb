@@ -8,7 +8,8 @@ class Variable
 public:
     Variable();
     Variable(QString name, QString type, QString content);
-    void parseContent(const QString& line);
+    void parseContent(const QString& line); //unused
+    QStringList getSubVariables()const;
 //private:
     QString mName;
     QString mType;

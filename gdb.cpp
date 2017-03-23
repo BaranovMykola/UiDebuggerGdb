@@ -168,6 +168,7 @@ void Gdb::updateLocalVariables()
     {
         Variable var(i, getVarType(i), getVarContent(i)); //todo
         mVariablesList.push_back(var);
+        var.getSubVariables();
     }
 }
 
