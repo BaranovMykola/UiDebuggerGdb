@@ -37,6 +37,7 @@ public:
     std::vector<Breakpoint> getBreakpoints()const;
     std::vector<Variable> getLocalVariables()const;
     QString getVarContent(const QString& var);
+    QString getVarType(const QString& variable);
 public slots:
     void slotReadStdOutput();
     void slotReadErrOutput();

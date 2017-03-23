@@ -34,6 +34,7 @@ private slots:
     void slotShowVar();
     void slotShowLocal();
     void slotUpdtaeLocals();
+    void slotGetVarType();
 private:
     Ui::MainWindow *ui;
     Gdb *mProcess;

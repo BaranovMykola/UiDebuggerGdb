@@ -28,6 +28,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->butVar, SIGNAL(clicked(bool)), this, SLOT(slotShowVar()), Qt::UniqueConnection);
     connect(ui->butLocal, SIGNAL(clicked(bool)), this, SLOT(slotShowLocal()), Qt::UniqueConnection);
     connect(ui->butUpdateLocals, SIGNAL(clicked(bool)), this, SLOT(slotUpdtaeLocals()), Qt::UniqueConnection);
+    connect(ui->butGetVarType, SIGNAL(clicked(bool)), this, SLOT(slotGetVarType()), Qt::UniqueConnection);
 
     QFile file(qApp->applicationDirPath().append("/gdb/gdb.exe"));
     qDebug() << "File exist: " << (file.exists());
@@ -163,4 +164,9 @@ void MainWindow::slotUpdtaeLocals()
     {
         ui->designOutput->appendPlainText(QString("Name: %1 Type: %2 Content: %3").arg(i.mName).arg(i.mType).arg(i.mContent).append("\n"));
     }
+}
+
+void MainWindow::slotGetVarType()
+{
+    mProcess->getVarType("conj.digit");
 }

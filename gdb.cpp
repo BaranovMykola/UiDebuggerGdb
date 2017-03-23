@@ -166,7 +166,7 @@ void Gdb::updateLocalVariables()
     mVariablesList.clear();
     for(auto i : locals)
     {
-        Variable var(i, "type TODO!!!", getVarContent(i)); //todo
+        Variable var(i, getVarType(i), getVarContent(i)); //todo
         mVariablesList.push_back(var);
     }
 }
@@ -205,6 +205,20 @@ QString Gdb::getVarContent(const QString& var)
     withoutLines.remove(0, 2);
     return withoutLines;
 
+}
+
+QString Gdb::getVarType(const QString &variable)
+{   //finds and returns type of variable $variable$
+    write(QByteArray("whatis ").append(variable));
+    QProcess::waitForReadyRead(1000);
+    QRegExp findType("type\\s=\\s[\\w:]+");
+    if(findType.indexIn(mBuffer) == -1)
+    {
+        return QString();
+    }
+    QString type = findType.cap();
+    QString bareType = type.split('=')[1].trimmed();
+    return bareType;
 }
 
 void Gdb::slotReadStdOutput()

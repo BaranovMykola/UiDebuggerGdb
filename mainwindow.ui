@@ -95,6 +95,13 @@
        </widget>
       </item>
       <item>
+       <widget class="QPushButton" name="butGetVarType">
+        <property name="text">
+         <string>getVarType</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QPushButton" name="butLocalVar">
         <property name="text">
          <string>Get local var</string>
