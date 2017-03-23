@@ -30,6 +30,7 @@ QStringList Variable::getSubVariables() const
     int brackets = 0;
     QString currentName;
     QStringList nestedVars;
+    bool capture = true;
     for(int i=0;i<mContent.size();++i)
     {
         QChar ch = mContent[i];
@@ -45,12 +46,17 @@ QStringList Variable::getSubVariables() const
         }
         if(ch == ' ' && !currentName.isEmpty())
         {
+            capture = false;
             nestedVars << currentName;
             currentName.clear();
-            i = mContent.indexOf(',', i+1)+1;
             continue;
         }
-        if(ch != ' ' && ch != '=' && ch!= ',' && brackets == 1)
+        if(ch == ',')
+        {
+            capture = true;
+            continue;
+        }
+        if(ch != ' ' && ch != '=' && ch!= ',' && brackets == 1 && capture)
         {
             currentName.append(ch);
 
