@@ -19,7 +19,9 @@ public:
     ~MainWindow();
     void addTreeRoot(Variable var);
     void addTreeChild(QTreeWidgetItem *parent,
-                      Variable var);
+                      Variable var, QString prefix);
+    void addTreeChildren(QTreeWidgetItem* parrent,
+                      Variable var, QString prefix);
 private slots:
     void slotReadOutput();
     void slotWriteToProcess();

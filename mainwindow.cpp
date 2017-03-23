@@ -54,26 +54,46 @@ void MainWindow::addTreeRoot(Variable var)
     // QTreeWidgetItem::setText(int column, const QString & text)
     treeItem->setText(0, var.mName);
     treeItem->setText(1, var.mContent.append(" (%1)").arg(var.mType));
-    QStringList nestedVars = var.getSubVariables();
-    for(auto i : nestedVars)
-    {
-        QString nestedName = var.mName;
-        nestedName = nestedName.append(".").append(i);
-        Variable newVar(i,mProcess->getVarType(nestedName), mProcess->getVarContent(nestedName));
-        addTreeChild(treeItem, newVar);
-    }
+    addTreeChildren(treeItem, var, "");
 }
 
-void MainWindow::addTreeChild(QTreeWidgetItem *parent, Variable var)
+void MainWindow::addTreeChild(QTreeWidgetItem *parent, Variable var, QString prefix)
 {
     QTreeWidgetItem *treeItem = new QTreeWidgetItem();
 
     // QTreeWidgetItem::setText(int column, const QString & text)
     treeItem->setText(0, var.mName);
     treeItem->setText(1, var.mContent.append(" (%1)").arg(var.mType));
-
+    addTreeChildren(treeItem, var, prefix);
     // QTreeWidgetItem::addChild(QTreeWidgetItem * child)
     parent->addChild(treeItem);
+}
+
+void MainWindow::addTreeChildren(QTreeWidgetItem *parrent, Variable var, QString prefix)
+{
+    //QTreeWidgetItem *treeItem = new QTreeWidgetItem();
+    QStringList nestedVars = var.getSubVariables();
+    bool add = false;
+    for(auto i : nestedVars)
+    {
+        QString nestedName;
+        if(!prefix.isEmpty())
+        {
+            nestedName = prefix;
+        }
+        else
+        {
+            nestedName = var.mName;
+        }
+        nestedName = nestedName.append(".").append(i);
+        Variable newVar(i,mProcess->getVarType(nestedName), mProcess->getVarContent(nestedName));
+        addTreeChild(parrent, newVar, nestedName);
+        add = true;
+    }
+    if(add)
+    {
+     //   parrent->addChild(treeItem);
+    }
 }
 
 // target exec D:\Studying\Programming\Qt\My Project\build-UiDebuggerGdb-Custom_Kit-Debug\debug\gdb\gdb.exe
