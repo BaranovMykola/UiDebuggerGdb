@@ -8,9 +8,11 @@
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
-    mProcess{new Gdb("debug/gdb/gdb.exe")}
+    mProcess{new Gdb("debug/gdb/gdb.exe")},
+    mDebugWindow{}
 {
     ui->setupUi(this);
+    mDebugWindow.show();
 
     connect(mProcess, SIGNAL(readyReadStandardOutput()), this, SLOT(slotReadOutput()), Qt::UniqueConnection);
     connect(mProcess, SIGNAL(readyReadStandardError()), this, SLOT(slotReadOutput()), Qt::UniqueConnection);
@@ -37,11 +39,41 @@ MainWindow::MainWindow(QWidget *parent) :
 //    ui->command->setText("target exec debug/gdb/compl.exe");
     mProcess->openProject("debug/gdb/compl.exe");
     ui->command->setFocus();
+    ui->treeWidget->setColumnCount(2);
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+void MainWindow::addTreeRoot(Variable var)
+{
+    QTreeWidgetItem *treeItem = new QTreeWidgetItem(ui->treeWidget);
+
+    // QTreeWidgetItem::setText(int column, const QString & text)
+    treeItem->setText(0, var.mName);
+    treeItem->setText(1, var.mContent.append(" (%1)").arg(var.mType));
+    QStringList nestedVars = var.getSubVariables();
+    for(auto i : nestedVars)
+    {
+        QString nestedName = var.mName;
+        nestedName = nestedName.append(".").append(i);
+        Variable newVar(i,mProcess->getVarType(nestedName), mProcess->getVarContent(nestedName));
+        addTreeChild(treeItem, newVar);
+    }
+}
+
+void MainWindow::addTreeChild(QTreeWidgetItem *parent, Variable var)
+{
+    QTreeWidgetItem *treeItem = new QTreeWidgetItem();
+
+    // QTreeWidgetItem::setText(int column, const QString & text)
+    treeItem->setText(0, var.mName);
+    treeItem->setText(1, var.mContent.append(" (%1)").arg(var.mType));
+
+    // QTreeWidgetItem::addChild(QTreeWidgetItem * child)
+    parent->addChild(treeItem);
 }
 
 // target exec D:\Studying\Programming\Qt\My Project\build-UiDebuggerGdb-Custom_Kit-Debug\debug\gdb\gdb.exe
@@ -163,6 +195,7 @@ void MainWindow::slotUpdtaeLocals()
     for(auto i : locals)
     {
         ui->designOutput->appendPlainText(QString("Name: %1 Type: %2 Content: %3").arg(i.mName).arg(i.mType).arg(i.mContent).append("\n"));
+        addTreeRoot(i);
     }
 }
 

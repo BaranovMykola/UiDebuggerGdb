@@ -33,22 +33,20 @@ void Gdb::write(QByteArray &command)
 void Gdb::readStdOutput()
 {
     mBuffer = QProcess::readAll();
-    //qDebug() << "readStdOutpur " << mBuffer << "\n\n";
-    if(mCaptureLocalVarSeveralTimes != 0)
+    //^error,msg="The program is not being run."
+    QRegExp errorMatch("\\^error");
+    if(errorMatch.indexIn(mBuffer) != -1)
     {
-        --mCaptureLocalVarSeveralTimes;
-        mLocalVar.append( mBuffer);
-        mCaptureLocalVar = false;
-        if(mCaptureLocalVarSeveralTimes == 0)
-        {
-            emit signalLocalVarRecieved(mBuffer);
-        }
+        QRegExp errorMsg("msg=[\\w\\s\"]+");
+        errorMsg.indexIn(mBuffer);
+        mErrorMessage = errorMsg.cap();
+        emit signalErrorOccured(mErrorMessage);
     }
 }
 
 void Gdb::readErrOutput()
 {
-    mBuffer = QProcess::readAllStandardError();
+    //mBuffer = QProcess::readAllStandardError();
 
 }
 
@@ -220,6 +218,12 @@ QString Gdb::getVarType(const QString &variable)
     QString type = findType.cap();
     QString bareType = type.split('=')[1].trimmed();
     return bareType;
+}
+
+void Gdb::globalUpdate()
+{
+    updateBreakpointsList();
+    updateLocalVariables();
 }
 
 void Gdb::slotReadStdOutput()

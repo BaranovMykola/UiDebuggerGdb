@@ -38,14 +38,17 @@ public:
     std::vector<Variable> getLocalVariables()const;
     QString getVarContent(const QString& var);
     QString getVarType(const QString& variable);
+    void globalUpdate();
 public slots:
     void slotReadStdOutput();
     void slotReadErrOutput();
     void slotReadLocalVar();
 signals:
     void signalLocalVarRecieved(const QString&);
+    void signalErrorOccured(const QString&);
 private:
     QFile mGdbFile;
+    QString mErrorMessage;
     QString mBuffer;
     QString mLocalVar;
     bool mCaptureLocalVar;

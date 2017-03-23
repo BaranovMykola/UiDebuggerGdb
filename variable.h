@@ -2,6 +2,7 @@
 #define VARIABLE_H
 
 #include <QString>
+#include <vector>
 
 class Variable
 {

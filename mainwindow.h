@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include "gdb.h"
+#include "debugwindow.h"
 
 namespace Ui {
 class MainWindow;
@@ -13,11 +14,12 @@ class QProcess;
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
-
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
-
+    void addTreeRoot(Variable var);
+    void addTreeChild(QTreeWidgetItem *parent,
+                      Variable var);
 private slots:
     void slotReadOutput();
     void slotWriteToProcess();
@@ -38,6 +40,7 @@ private slots:
 private:
     Ui::MainWindow *ui;
     Gdb *mProcess;
+    DebugWindow mDebugWindow;
 };
 
 #endif // MAINWINDOW_H
