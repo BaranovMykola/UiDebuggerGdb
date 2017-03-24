@@ -199,10 +199,10 @@ void MainWindow::slotShowBreakpoints()
     auto brkLst = mProcess->getBreakpoints();
     for(Breakpoint i : brkLst)
     {
-        QString disposition = (i.mDisposition == Breakpoint::Disposition::Keep) ? "Keep" : "Delete";
+        QString disposition = (i.getDisposition() == Breakpoint::Disposition::Keep) ? "Keep" : "Delete";
         ui->designOutput->appendPlainText(QString("Breakpoint. Disposition: %1 Function: %2 Line: %3 Enabled %4\n").arg(disposition)
-                                  .arg(i.mWhat).arg(QString::number(i.mLine))
-                                  .arg(i.mEnabled ? "True" : "False"));
+                                  .arg(i.getFrame()).arg(QString::number(i.getLine()))
+                                  .arg(i.isEnabled() ? "True" : "False"));
     }
 }
 
