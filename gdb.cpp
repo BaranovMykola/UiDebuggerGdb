@@ -136,107 +136,118 @@ int Gdb::getCurrentLine()
 }
 
 void Gdb::updateBreakpointsList()
-{
+{   //update std::vector<Breakpoint>  mBreakpointsList with relevant info
+    /*
+        &"info b\n"
+        ~"Num     Type           Disp Enb Address    What\n"
+
+        ~"1       breakpoint     keep y   0x00401516 in main() at main.cpp:46\n"
+        ~"\tbreakpoint already hit 1 time\n"
+        ~"2       breakpoint     keep y   0x00401516 in main() at main.cpp:46\n"
+        ^done
+    */
     write(QByteArray("info b"));
     QProcess::waitForReadyRead(1000);
-    QStringList lines = mBuffer.split('~');
-    for(auto i : lines)
+    QStringList lines = mBuffer.split('~'); // split by CLI output lines
+    mBreakpointsList.clear(); // clear old info
+    for(int i=2;i<lines.size();++i) //read all lines except of first two (command line and topic line)
     {
-        qDebug() << i << "\n";
-    }
-    mBreakpointsList.clear();
-
-    QString topic = lines[0];
-    for(int i=2;i<lines.size();++i)
-    {
-        Breakpoint addBrk;
+        Breakpoint currentBreakpoint;
         QString currentLine = lines[i];
         try
         {
-            addBrk.parse(currentLine);
-            mBreakpointsList.push_back(addBrk);
+            currentBreakpoint.parse(currentLine); // full breakpoint from $currentLine$
+            mBreakpointsList.push_back(currentBreakpoint); // write relevant breakpoint to vector
         }
         catch(std::exception)
-        {
+        {   //split breakpoint, if there are some error while processing $currentLine$
         }
     }
 }
 
 void Gdb::updateLocalVariables()
-{
-    QStringList locals = getLocalVar();
-    mVariablesList.clear();
+{   //update std::vector<Variables> mVariablesList with relevant info
+    QStringList locals = getLocalVar(); // get all locals var
+    mVariablesList.clear(); // clear old info
     for(auto i : locals)
     {
-        Variable var(i, getVarType(i), getVarContent(i)); //todo
+        Variable var(i, getVarType(i), getVarContent(i));
         mVariablesList.push_back(var);
-        var.getSubVariables();
     }
 }
 
 std::vector<Breakpoint> Gdb::getBreakpoints() const
-{
+{   //returns list of all breakpoint
     return mBreakpointsList;
 }
 
 std::vector<Variable> Gdb::getLocalVariables() const
-{
+{   //returns list of all variables
     return mVariablesList;
 }
 
 QString Gdb::getVarContent(const QString& var)
-{
+{   //return variables content in QString format
+    /*
+        ~"$1 = {digit = {real = 3"
+        ~", imaginary = 4"
+        ~"}"
+        ~"}"
+        ~"\n"
+        ^done
+    */
     write(QByteArray("print ").append(var));
     QProcess::waitForReadyRead(1000);
-    QRegExp errorMatch("\\^done");
-    if(errorMatch.indexIn(mBuffer) == -1)
+//    QRegExp errorMatch("\\^done");
+//    if(errorMatch.indexIn(mBuffer) == -1)
+//    {
+//        //throw std::exception("Error while var reading");
+//    }
+    QRegExp content("=\\s.*\\^done"); // match string beginning with '= ' and ending with '^done'
+    QRegExp clean("[\\\\|\|\"|~]"); // find all garbage characters '\', '"', '~'
+    QRegExp pointerMatch("\\(.*\\s*\\)\\s0x[\\d+abcdef]+"); // try to regonize pointer content
+                                                            // (SOME_TYPE *) 0x6743hf2
+    if(pointerMatch.indexIn(mBuffer) != -1)
     {
-        //throw std::exception("Error while var reading");
-    }
-    QRegExp content("=\\s.*\\^done");
-    QRegExp clean("[\\\\|\|\"|~]");
-    QRegExp pointerMatch("\\(.*\\s*\\)\\s0x[\\d+abcdef]+");
-    if(pointerMatch.indexIn(mBuffer) == -1)
-    {
-        qDebug() << "Pointer not recognized";
-    }
-    else
-    {
-        qDebug() << "Pointer at: " << pointerMatch.cap();
-        QString addres = pointerMatch.cap().split(' ').last();
+        QString addres = pointerMatch.cap().split(' ').last();  // get only hex addres
         return addres;
     }
-//    QRegExp clean("\\\\n");
-    qDebug() << ((content.indexIn(mBuffer) == -1) ? "Nothing captured" : "Captured smth succsesfully");
+    content.indexIn(mBuffer);
     QString res = content.cap().replace(clean, "").replace("^done", "").trimmed();
-    res.resize(res.size()-1);
+    res.resize(res.size()-1); // last character is garbate too
+    /* Removed all line breaks */
     auto lst = res.split('\n');
     for(QString& i : lst)
     {
         i = i.trimmed();
     }
-    QString withoutLines = lst.join("");
-    withoutLines.remove(0, 2);
+    QString withoutLines = lst.join(""); // complete one QString again
+    withoutLines.remove(0, 2); // first two charactes are garbage too '= '
     return withoutLines;
-
 }
 
 QString Gdb::getVarType(const QString &variable)
 {   //finds and returns type of variable $variable$
+    /*
+        &"whatis conj\n"
+        ~"type = Conjugate\n"
+        ^done
+    */
     write(QByteArray("whatis ").append(variable));
     QProcess::waitForReadyRead(1000);
-    QRegExp findType("type\\s=\\s[\\w:\*\\s]+");
-    if(findType.indexIn(mBuffer) == -1)
+    QRegExp findType("type\\s=\\s[\\w:\\*\\s]+"); // find string after 'type = ' included only characters,
+                                                 // digits, uderscores, '*' and whitespaces
+    if(findType.indexIn(mBuffer) == -1) // if not found
     {
         return QString();
     }
     QString type = findType.cap();
-    QString bareType = type.split('=')[1].trimmed();
+    QString bareType = type.split('=')[1].trimmed(); // type is string after 'type = '
     return bareType;
 }
 
 void Gdb::globalUpdate()
-{
+{   // update all informations
     updateBreakpointsList();
     updateLocalVariables();
 }
