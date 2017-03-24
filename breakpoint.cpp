@@ -28,7 +28,6 @@ void Breakpoint::parse(const QString &line)
       {
           mDisposition = Disposition::Keep;
       }
-
       mEnabled = enabled.indexIn(line) == -1 ? false : true;
       lineRegex.indexIn(line);
       QString lineFrame = lineRegex.cap();

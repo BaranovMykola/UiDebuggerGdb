@@ -26,8 +26,8 @@ void DebugWindow::addTreeRoot(Variable var)
         QTreeWidgetItem *treeItem = new QTreeWidgetItem(ui->treeWidget);
 
         // QTreeWidgetItem::setText(int column, const QString & text)
-        treeItem->setText(0, var.mName);
-        treeItem->setText(1, var.mContent.append(" (%1)").arg(var.mType));
+        treeItem->setText(0, var.getName());
+        treeItem->setText(1, var.getContent().append(" (%1)").arg(var.getType()));
 //        addTreeChild(treeItem, name + "A", "Child_first");
 //        addTreeChild(treeItem, name + "B", "Child_second");
 }

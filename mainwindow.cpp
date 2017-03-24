@@ -52,10 +52,10 @@ void MainWindow::addTreeRoot(Variable var)
     QTreeWidgetItem *treeItem = new QTreeWidgetItem(ui->treeWidget);
 
     // QTreeWidgetItem::setText(int column, const QString & text)
-    treeItem->setText(0, var.mName);
-    QString varContent = var.mContent;
+    treeItem->setText(0, var.getName());
+    QString varContent = var.getContent();
     varContent.append(" (%1)");
-    varContent = varContent.arg(var.mType);
+    varContent = varContent.arg(var.getType());
     treeItem->setText(1, varContent);
     addTreeChildren(treeItem, var, "");
 }
@@ -65,8 +65,8 @@ void MainWindow::addTreeChild(QTreeWidgetItem *parent, Variable var, QString pre
     QTreeWidgetItem *treeItem = new QTreeWidgetItem();
 
     // QTreeWidgetItem::setText(int column, const QString & text)
-    treeItem->setText(0, var.mName);
-    treeItem->setText(1, var.mContent.append(" (%1)").arg(var.mType));
+    treeItem->setText(0, var.getName());
+    treeItem->setText(1, var.getContent().append(" (%1)").arg(var.getType()));
     addTreeChildren(treeItem, var, prefix);
     // QTreeWidgetItem::addChild(QTreeWidgetItem * child)
     parent->addChild(treeItem);
@@ -86,7 +86,7 @@ void MainWindow::addTreeChildren(QTreeWidgetItem *parrent, Variable var, QString
         }
         else
         {
-            nestedName = var.mName;
+            nestedName = var.getName();
         }
         QRegExp isPointerMatch("\\*");
         if(isPointerMatch.indexIn(i) == -1)
@@ -105,7 +105,7 @@ void MainWindow::addTreeChildren(QTreeWidgetItem *parrent, Variable var, QString
             }
             pointerFullname.append(i);
             qDebug() << "Asking about pointer " << pointerFullname;
-            Variable newVar(var.mContent,mProcess->getVarType(pointerFullname), mProcess->getVarContent(pointerFullname));
+            Variable newVar(var.getContent(),mProcess->getVarType(pointerFullname), mProcess->getVarContent(pointerFullname));
             addTreeChild(parrent, newVar, nestedName);
             add = true;
         }
@@ -235,7 +235,7 @@ void MainWindow::slotUpdtaeLocals()
     ui->treeWidget->clear();
     for(auto i : locals)
     {
-        ui->designOutput->appendPlainText(QString("Name: %1 Type: %2 Content: %3").arg(i.mName).arg(i.mType).arg(i.mContent).append("\n"));
+        ui->designOutput->appendPlainText(QString("Name: %1 Type: %2 Content: %3").arg(i.getName()).arg(i.getType()).arg(i.getContent()).append("\n"));
         addTreeRoot(i);
     }
 }
