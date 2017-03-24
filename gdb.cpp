@@ -191,6 +191,17 @@ QString Gdb::getVarContent(const QString& var)
     }
     QRegExp content("=\\s.*\\^done");
     QRegExp clean("[\\\\|\|\"|~]");
+    QRegExp pointerMatch("\\(.*\\s*\\)\\s0x[\\d+abcdef]+");
+    if(pointerMatch.indexIn(mBuffer) == -1)
+    {
+        qDebug() << "Pointer not recognized";
+    }
+    else
+    {
+        qDebug() << "Pointer at: " << pointerMatch.cap();
+        QString addres = pointerMatch.cap().split(' ').last();
+        return addres;
+    }
 //    QRegExp clean("\\\\n");
     qDebug() << ((content.indexIn(mBuffer) == -1) ? "Nothing captured" : "Captured smth succsesfully");
     QString res = content.cap().replace(clean, "").replace("^done", "").trimmed();
@@ -210,7 +221,7 @@ QString Gdb::getVarType(const QString &variable)
 {   //finds and returns type of variable $variable$
     write(QByteArray("whatis ").append(variable));
     QProcess::waitForReadyRead(1000);
-    QRegExp findType("type\\s=\\s[\\w:]+");
+    QRegExp findType("type\\s=\\s[\\w:\*\\s]+");
     if(findType.indexIn(mBuffer) == -1)
     {
         return QString();

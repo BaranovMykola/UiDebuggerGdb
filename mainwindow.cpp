@@ -12,7 +12,6 @@ MainWindow::MainWindow(QWidget *parent) :
     mDebugWindow{}
 {
     ui->setupUi(this);
-    mDebugWindow.show();
 
     connect(mProcess, SIGNAL(readyReadStandardOutput()), this, SLOT(slotReadOutput()), Qt::UniqueConnection);
     connect(mProcess, SIGNAL(readyReadStandardError()), this, SLOT(slotReadOutput()), Qt::UniqueConnection);
@@ -31,6 +30,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->butLocal, SIGNAL(clicked(bool)), this, SLOT(slotShowLocal()), Qt::UniqueConnection);
     connect(ui->butUpdateLocals, SIGNAL(clicked(bool)), this, SLOT(slotUpdtaeLocals()), Qt::UniqueConnection);
     connect(ui->butGetVarType, SIGNAL(clicked(bool)), this, SLOT(slotGetVarType()), Qt::UniqueConnection);
+    connect(ui->butReadPointer, SIGNAL(clicked(bool)), this, SLOT(slotReadPointer()), Qt::UniqueConnection);
 
     QFile file(qApp->applicationDirPath().append("/gdb/gdb.exe"));
     qDebug() << "File exist: " << (file.exists());
@@ -150,7 +150,7 @@ void MainWindow::slotStepOver()
 
 void MainWindow::slotSetBreakPoint()
 {
-    mProcess->setBreakPoint(40);
+    mProcess->setBreakPoint(46);
 }
 
 void MainWindow::slotClearBreakPoint()
@@ -222,4 +222,9 @@ void MainWindow::slotUpdtaeLocals()
 void MainWindow::slotGetVarType()
 {
     mProcess->getVarType("conj.digit");
+}
+
+void MainWindow::slotReadPointer()
+{
+    ui->designOutput->appendPlainText(mProcess->getVarContent("pointer"));
 }
