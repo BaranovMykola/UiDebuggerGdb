@@ -19,19 +19,19 @@ Gdb::Gdb(QString gdbPath):
 }
 
 void Gdb::start(const QStringList &arguments, QIODevice::OpenMode mode)
-{
+{   //starts QPRocess, opens $mGdbFile.fileName()$ and passes $arguments$ as arguments
     QProcess::start(mGdbFile.fileName(), arguments, mode);
 }
 
 void Gdb::write(QByteArray &command)
-{
+{   //wrtie command to GDB. You shouldn't pass command with '\n' It will appended here.
     QByteArray enter("\n");
     command.append(enter);
     QProcess::write(command);
 }
 
 void Gdb::readStdOutput()
-{
+{   //Reads all standart output from GDB
     mBuffer = QProcess::readAll();
     //^error,msg="The program is not being run."
     QRegExp errorMatch("\\^error");
@@ -46,39 +46,38 @@ void Gdb::readStdOutput()
 
 void Gdb::readErrOutput()
 {
-    //mBuffer = QProcess::readAllStandardError();
-
+    mBuffer = QProcess::readAllStandardError();
 }
 
 const QString &Gdb::getOutput() const
-{
+{   //Retrun mBuffer output
     return mBuffer;
 }
 
 QStringList Gdb::getLocalVar()
 {   //finds and returns all local variable names
+    /*
+    ~"comp = {real = 3"
+    ~", imaginary = 4"
+    ~"}"
+    */
     write(QByteArray("info local"));
     QProcess::waitForReadyRead(1000);
-    QRegExp varMatch("\"\\w+\\s=");
-    qDebug() << ((varMatch.indexIn(mBuffer) == -1) ? "Nothing found":"Something found");
+    QRegExp varMatch("\"\\w+\\s="); // find substring from '"' to '=' included only characters,
+                                    // digits and whitespaces (it's a var name)
     int pos = 0;
     QStringList locals;
-    while(pos != -1)
+    while(pos != -1)// reads all matches
     {
-        pos = varMatch.indexIn(mBuffer, pos+1);
-        QRegExp clean("\"|\\s|=");
-        QString varName = varMatch.cap().replace(clean, "").trimmed();
+        pos = varMatch.indexIn(mBuffer, pos+1);//find next matches
+        QRegExp clean("\"|\\s|=");// find all garbage characters
+        QString varName = varMatch.cap().replace(clean, "").trimmed();// clean garbage and whitespaces
         if(!varName.isEmpty())
         {
             locals << varName;
         }
     }
     return locals;
-}
-
-const QString &Gdb::peekLocalVar() const
-{
-    return mLocalVar;
 }
 
 void Gdb::openProject(const QString &fileName)
@@ -103,7 +102,7 @@ void Gdb::setBreakPoint(unsigned int line)
 }
 
 void Gdb::clearBreakPoint(unsigned int line)
-{
+{   //clear breakpoint at line $line$
     write(QByteArray("clear ").append(QString::number(line)));
 }
 
@@ -119,16 +118,21 @@ void Gdb::stepOut()
 
 int Gdb::getCurrentLine()
 {   //returns current line of code or -1 if any aerror occured
+    /*
+    ~"#0  main () at main.cpp:46\n"
+    ~"46\t\tcout << \"Finished main\";\n"
+    ^done
+    */
     write(QByteArray("frame"));
     QProcess::waitForReadyRead();
-    QRegExp rx(":\\d+");
+    QRegExp rx(":\\d+"); //finds ':46'
     if(rx.indexIn(mBuffer) == -1)
     {
-        return -1;
+        return -1; //not found
     }
-    QStringList lst = rx.capturedTexts();
-    QString line = lst[0];
-    return line.split(':').last().toInt();
+    QStringList lst = rx.capturedTexts(); //found :46
+    QString line = lst[0];// first matches
+    return line.split(':').last().toInt();// (int)"46"
 }
 
 void Gdb::updateBreakpointsList()
@@ -187,7 +191,7 @@ QString Gdb::getVarContent(const QString& var)
     QRegExp errorMatch("\\^done");
     if(errorMatch.indexIn(mBuffer) == -1)
     {
-        throw std::exception("Error while var reading");
+        //throw std::exception("Error while var reading");
     }
     QRegExp content("=\\s.*\\^done");
     QRegExp clean("[\\\\|\|\"|~]");

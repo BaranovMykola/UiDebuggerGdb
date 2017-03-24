@@ -23,7 +23,6 @@ public:
     void readErrOutput();
     const QString& getOutput()const;
     QStringList getLocalVar();
-    const QString& peekLocalVar()const;
     void openProject(const QString& fileName);
     void run();
     void stepOver();

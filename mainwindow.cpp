@@ -232,6 +232,7 @@ void MainWindow::slotUpdtaeLocals()
 {
     mProcess->updateLocalVariables();
     auto locals = mProcess->getLocalVariables();
+    ui->treeWidget->clear();
     for(auto i : locals)
     {
         ui->designOutput->appendPlainText(QString("Name: %1 Type: %2 Content: %3").arg(i.mName).arg(i.mType).arg(i.mContent).append("\n"));
