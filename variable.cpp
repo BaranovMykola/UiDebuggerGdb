@@ -27,6 +27,14 @@ void Variable::parseContent(const QString &line)
 QStringList Variable::getSubVariables() const
 {
    //  {digit = {real = 3, imaginary = 4}}
+    bool isPointer = false;
+    QRegExp isPointerMatch("\\*");
+    if(isPointerMatch.indexIn(mType) != -1)
+    {
+        QString newName = mName;
+        newName.prepend('*');
+        return QStringList() << newName;
+    }
     int brackets = 0;
     QString currentName;
     QStringList nestedVars;

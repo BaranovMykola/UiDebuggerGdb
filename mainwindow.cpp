@@ -53,7 +53,10 @@ void MainWindow::addTreeRoot(Variable var)
 
     // QTreeWidgetItem::setText(int column, const QString & text)
     treeItem->setText(0, var.mName);
-    treeItem->setText(1, var.mContent.append(" (%1)").arg(var.mType));
+    QString varContent = var.mContent;
+    varContent.append(" (%1)");
+    varContent = varContent.arg(var.mType);
+    treeItem->setText(1, varContent);
     addTreeChildren(treeItem, var, "");
 }
 
@@ -85,10 +88,27 @@ void MainWindow::addTreeChildren(QTreeWidgetItem *parrent, Variable var, QString
         {
             nestedName = var.mName;
         }
-        nestedName = nestedName.append(".").append(i);
-        Variable newVar(i,mProcess->getVarType(nestedName), mProcess->getVarContent(nestedName));
-        addTreeChild(parrent, newVar, nestedName);
-        add = true;
+        QRegExp isPointerMatch("\\*");
+        if(isPointerMatch.indexIn(i) == -1)
+        {
+            nestedName = nestedName.append(".").append(i);
+            Variable newVar(i,mProcess->getVarType(nestedName), mProcess->getVarContent(nestedName));
+            addTreeChild(parrent, newVar, nestedName);
+            add = true;
+        }
+        else
+        {
+            QString pointerFullname = prefix;
+            if(!pointerFullname.isEmpty())
+            {
+                pointerFullname.append('.');
+            }
+            pointerFullname.append(i);
+            qDebug() << "Asking about pointer " << pointerFullname;
+            Variable newVar(var.mContent,mProcess->getVarType(pointerFullname), mProcess->getVarContent(pointerFullname));
+            addTreeChild(parrent, newVar, nestedName);
+            add = true;
+        }
     }
     if(add)
     {
