@@ -37,7 +37,7 @@ MainWindow::MainWindow(QWidget *parent) :
     mProcess->start(QStringList() << "--interpreter=mi");
 
 //    ui->command->setText("target exec debug/gdb/compl.exe");
-    mProcess->openProject("debug/gdb/lst.exe");
+    mProcess->openProject("debug/gdb/pointers.exe");
     ui->command->setFocus();
     ui->treeWidget->setColumnCount(2);
 }
@@ -76,7 +76,6 @@ void MainWindow::addTreeChildren(QTreeWidgetItem *parrent, Variable var, QString
 {
     //QTreeWidgetItem *treeItem = new QTreeWidgetItem();
     QStringList nestedVars = var.getSubVariables();
-    bool add = false;
     for(auto i : nestedVars)
     {
         QString nestedName;
@@ -92,36 +91,24 @@ void MainWindow::addTreeChildren(QTreeWidgetItem *parrent, Variable var, QString
         if(isPointerMatch.indexIn(i) == -1)
         {
             nestedName = nestedName.append(".").append(i);
-            QString newVarName = nestedName;
-//            newVarName.append(".");
-//            newVarName.append(i);
-//            newVarName.append("*");
             Variable newVar(i,mProcess->getVarType(nestedName), mProcess->getVarContent(nestedName));
             addTreeChild(parrent, newVar, nestedName);
-            add = true;
         }
         else
         {
             QString pointerFullname = prefix;
             if(!pointerFullname.isEmpty())
             {
-//                pointerFullname.append('.');
                 pointerFullname.prepend('*');
             }
             else
             {
-
                 pointerFullname.append(i);
             }
             qDebug() << "Asking about pointer " << pointerFullname;
             Variable newVar(var.getContent(),mProcess->getVarType(pointerFullname), mProcess->getVarContent(pointerFullname));
-            addTreeChild(parrent, newVar, nestedName);
-            add = true;
+            addTreeChild(parrent, newVar, pointerFullname);
         }
-    }
-    if(add)
-    {
-     //   parrent->addChild(treeItem);
     }
 }
 
