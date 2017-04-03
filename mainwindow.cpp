@@ -37,7 +37,7 @@ MainWindow::MainWindow(QWidget *parent) :
     mProcess->start(QStringList() << "--interpreter=mi");
 
 //    ui->command->setText("target exec debug/gdb/compl.exe");
-    mProcess->openProject("debug/gdb/pointers.exe");
+    mProcess->openProject("debug/gdb/lst.exe");
     ui->command->setFocus();
     ui->treeWidget->setColumnCount(2);
 }
@@ -105,6 +105,8 @@ void MainWindow::addTreeChildren(QTreeWidgetItem *parrent, Variable var, QString
             {
                 pointerFullname.append(i);
             }
+            pointerFullname.append(')');
+            pointerFullname.prepend('(');
             qDebug() << "Asking about pointer " << pointerFullname;
             Variable newVar(var.getContent(),mProcess->getVarType(pointerFullname), mProcess->getVarContent(pointerFullname));
             addTreeChild(parrent, newVar, pointerFullname);
