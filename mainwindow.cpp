@@ -66,15 +66,16 @@ void MainWindow::addTreeRoot(Variable var)
 void MainWindow::addTreeChild(QTreeWidgetItem *parent, Variable var, QString prefix, bool internal = false)
 {
     QTreeWidgetItem *treeItem = new QTreeWidgetItem();
-
-    // QTreeWidgetItem::setText(int column, const QString & text)
     QString plainName = var.getName().split('.').last();
     treeItem->setText(0, plainName);
     treeItem->setText(1, var.getContent().append(" (%1)").arg(var.getType()));
-    // QTreeWidgetItem::addChild(QTreeWidgetItem * child)
     if(!internal)
     {
         addTreeChildren(treeItem, var, prefix);
+    }
+    else
+    {
+        treeItem->setHidden(true);
     }
     parent->addChild(treeItem);
 }
@@ -84,46 +85,30 @@ void MainWindow::addTreeChildren(QTreeWidgetItem *parrent, Variable var, QString
     std::vector<Variable> nestedTypes = var.getNestedTypes();
     if(var.isPointer())
     {
-        qDebug() << var.getName() << " is a pointer";
         QString dereferencedVarName = QString("*(%1)").arg(var.getName());
-//        Variable dereferencedVar(var.getContent(),  // TODO: make more pretty in the future
-//                                 mProcess->getVarType(dereferencedVarName),
-//                                 mProcess->getVarContent(dereferencedVarName));
-        //  var.setContent(var);
-        addTreeChild(parrent, var, "", true);
-//        mPointers.push_back(parrent);
-        mPointersName[parrent] = var;
+        addTreeChild(parrent, var, "", true);   //create fake node to enable expanding parent
+        mPointersName[parrent] = var;   //Add pointer's node to map and attach to this node pointer
     }
     for(auto i : nestedTypes)
     {
         QString likelyType = mProcess->getVarType(i.getName());
         i.setType(likelyType.isEmpty() ? "<No info>" : likelyType);
-        addTreeChild(parrent, i, prefix);
+        addTreeChild(parrent, i, prefix, false);
     }
 }
 
 void MainWindow::moidifyTreeItemPointer(QTreeWidgetItem *itemPointer)
-{
-//    QString pointerName = itemPointer->data(0,0).toString();
+{   //remove helper node and attachs content of dereferenced pointer
     Variable pointer = mPointersName[itemPointer];
-    QString address = pointer.getContent();
-    QString type = pointer.getType();
-    QString name = pointer.getName();
-    qDebug() << "Processing on dereferencing pointer " << pointer.getName() << " (" << type << ") " << address;
 
-    QString drfName = tr("(*%1)").arg(name);
+    QString drfName = tr("(*%1)").arg(pointer.getName());
     QString drfAddressContent = mProcess->getVarContent(drfName);
     QString drfAddressType = mProcess->getVarType(drfName);
-    qDebug() << "Dereferenced: " << drfAddressContent;
     Variable drfPointer(drfName, drfAddressType, drfAddressContent);
 
-    QTreeWidgetItem* child = itemPointer->child(0);
-    QString plainName = drfName.split('.').last();
-    child->setText(0, plainName);
-    child->setText(1, QString("%1 (%2)").arg(drfAddressContent)
-                         .arg(drfAddressType));
-itemPointer->removeChild(child);
-    addTreeChildren(itemPointer, drfPointer, "");
+    QTreeWidgetItem* child = itemPointer->child(0); //Pointer's node always has ony one shils so it's index is '0'
+    itemPointer->removeChild(child);    //remove internal node in tree
+    addTreeChildren(itemPointer, drfPointer, "");   //append dereferenced pointer to node with addres
 }
 
 // target exec D:\Studying\Programming\Qt\My Project\build-UiDebuggerGdb-Custom_Kit-Debug\debug\gdb\gdb.exe
@@ -288,17 +273,9 @@ void MainWindow::slotTestVariable()
 
 void MainWindow::slotItemExpanded(QTreeWidgetItem *item)
 {
-//    auto foundIterator = std::find(mPointers.begin(), mPointers.end(), item);
-//    if(foundIterator != mPointers.end())
-//    {
-//        qDebug() << "Pointer expanded";
-//        moidifyTreeItemPointer(item);
-//        mPointers.erase(foundIterator);
-//    }
     auto foundIterator = mPointersName.find(item);
     if(foundIterator != mPointersName.end())
     {
-            qDebug() << "Pointer expanded";
             moidifyTreeItemPointer(item);
             mPointersName.erase(foundIterator);
     }
