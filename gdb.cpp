@@ -80,10 +80,32 @@ QStringList Gdb::getLocalVar()
     return locals;
 }
 
+QStringList Gdb::getArgVar()
+{
+    write(QByteArray("info arg"));
+    QProcess::waitForReadyRead(1000);
+    QRegExp varMatch("\"\\w+\\s="); // find substring from '"' to '=' included only characters,
+                                    // digits and whitespaces (it's a var name)
+    int pos = 0;
+    QStringList locals;
+    while(pos != -1)// reads all matches
+    {
+        pos = varMatch.indexIn(mBuffer, pos+1);//find next matches
+        QRegExp clean("\"|\\s|=");// find all garbage characters
+        QString varName = varMatch.cap().replace(clean, "").trimmed();// clean garbage and whitespaces
+        if(!varName.isEmpty())
+        {
+            locals << varName;
+        }
+    }
+    return locals;
+}
+
 void Gdb::openProject(const QString &fileName)
 {   //opens file $fileName$ in gdb to debug it via target exec and file
     write(QByteArray("target exec ").append(fileName));
     write(QByteArray("file ").append(fileName));
+//    write(QByteArray("set new-console on"));
 }
 
 void Gdb::run()
@@ -176,6 +198,16 @@ void Gdb::updateLocalVariables()
     }
 }
 
+void Gdb::updateArgVariables()
+{
+    QStringList locals = getArgVar(); // get all arg var
+    for(auto i : locals)
+    {
+        Variable var(i, getVarType(i), getVarContent(i));
+        mVariablesList.push_back(var);
+    }
+}
+
 std::vector<Breakpoint> Gdb::getBreakpoints() const
 {   //returns list of all breakpoint
     return mBreakpointsList;
@@ -250,6 +282,7 @@ void Gdb::globalUpdate()
 {   // update all informations
     updateBreakpointsList();
     updateLocalVariables();
+    updateArgVariables();   //TODO (clear info in this method);
 }
 
 void Gdb::slotReadStdOutput()

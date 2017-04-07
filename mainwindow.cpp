@@ -31,13 +31,14 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->butUpdateLocals, SIGNAL(clicked(bool)), this, SLOT(slotUpdtaeLocals()), Qt::UniqueConnection);
     connect(ui->butGetVarType, SIGNAL(clicked(bool)), this, SLOT(slotGetVarType()), Qt::UniqueConnection);
     connect(ui->butReadPointer, SIGNAL(clicked(bool)), this, SLOT(slotReadPointer()), Qt::UniqueConnection);
+    connect(ui->butTestVar, SIGNAL(clicked(bool)), this, SLOT(slotTestVariable()), Qt::UniqueConnection);
 
     QFile file(qApp->applicationDirPath().append("/gdb/gdb.exe"));
     qDebug() << "File exist: " << (file.exists());
     mProcess->start(QStringList() << "--interpreter=mi");
 
 //    ui->command->setText("target exec debug/gdb/compl.exe");
-    mProcess->openProject("debug/gdb/lst.exe");
+    mProcess->openProject("debug/gdb/pairs.exe");
     ui->command->setFocus();
     ui->treeWidget->setColumnCount(2);
 }
@@ -74,44 +75,7 @@ void MainWindow::addTreeChild(QTreeWidgetItem *parent, Variable var, QString pre
 
 void MainWindow::addTreeChildren(QTreeWidgetItem *parrent, Variable var, QString prefix)
 {
-    //QTreeWidgetItem *treeItem = new QTreeWidgetItem();
-    QStringList nestedVars = var.getSubVariables();
-    for(auto i : nestedVars)
-    {
-        QString nestedName;
-        if(!prefix.isEmpty())
-        {
-            nestedName = prefix;
-        }
-        else
-        {
-            nestedName = var.getName();
-        }
-        QRegExp isPointerMatch("\\*");
-        if(isPointerMatch.indexIn(i) == -1)
-        {
-            nestedName = nestedName.append(".").append(i);
-            Variable newVar(i,mProcess->getVarType(nestedName), mProcess->getVarContent(nestedName));
-            addTreeChild(parrent, newVar, nestedName);
-        }
-        else
-        {
-            QString pointerFullname = prefix;
-            if(!pointerFullname.isEmpty())
-            {
-                pointerFullname.prepend('*');
-            }
-            else
-            {
-                pointerFullname.append(i);
-            }
-            pointerFullname.append(')');
-            pointerFullname.prepend('(');
-            qDebug() << "Asking about pointer " << pointerFullname;
-            Variable newVar(var.getContent(),mProcess->getVarType(pointerFullname), mProcess->getVarContent(pointerFullname));
-            addTreeChild(parrent, newVar, pointerFullname);
-        }
-    }
+
 }
 
 // target exec D:\Studying\Programming\Qt\My Project\build-UiDebuggerGdb-Custom_Kit-Debug\debug\gdb\gdb.exe
@@ -168,7 +132,7 @@ void MainWindow::slotStepOver()
 
 void MainWindow::slotSetBreakPoint()
 {
-    mProcess->setBreakPoint(46);
+    mProcess->setBreakPoint(9);
 }
 
 void MainWindow::slotClearBreakPoint()
@@ -228,13 +192,23 @@ void MainWindow::slotShowLocal()
 
 void MainWindow::slotUpdtaeLocals()
 {
-    mProcess->updateLocalVariables();
+//    mProcess->updateLocalVariables();
+//    mProcess->updateArgVariables();
+    mProcess->globalUpdate();
     auto locals = mProcess->getLocalVariables();
     ui->treeWidget->clear();
     for(auto i : locals)
     {
-        ui->designOutput->appendPlainText(QString("Name: %1 Type: %2 Content: %3").arg(i.getName()).arg(i.getType()).arg(i.getContent()).append("\n"));
-        addTreeRoot(i);
+        ui->designOutput->appendPlainText(QString("Name: %1 Value: %2 Type: %3").arg(i.getName())
+                                          .arg(i.getContent()).arg(i.getType()));
+        std::vector<Variable> nestedTypes = i.getNestedTypes();
+        for(auto n : nestedTypes)
+        {
+            QString likelyType = mProcess->getVarType(n.getName());
+            n.setType(likelyType.isEmpty() ? "<No info>" : likelyType);
+            ui->designOutput->appendPlainText(QString("\tName: %1 Value: %2 Type: %3").arg(n.getName())
+                                              .arg(n.getContent()).arg(n.getType()));
+        }
     }
 }
 
@@ -246,4 +220,19 @@ void MainWindow::slotGetVarType()
 void MainWindow::slotReadPointer()
 {
     ui->designOutput->appendPlainText(mProcess->getVarContent("pointer"));
+}
+
+void MainWindow::slotTestVariable()
+{
+    QString vec = "~\"$1 = {< std::_Vector_base < int, std::allocator < int > >>"
+                  " = { _M_impl = {< std::allocator < int >> = {< __gnu_cxx::new_allocator < int >> = {"
+                  "< No data fields>}, < No data fields>}, _M_start = 0x786e58, _M_finish = 0x786e74, "
+                  "_M_end_of_storage = 0x786e74}\"~\"}, <No data fields>}~\"\n\"^ done(gdb)";
+    Variable var("SomeName", "SomeType", vec);
+    auto nestedTypes = var.readNestedStruct(var.getContent());
+    for(auto i : nestedTypes)
+    {
+        qDebug() << i;
+    }
+
 }

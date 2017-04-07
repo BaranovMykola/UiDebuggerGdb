@@ -115,6 +115,13 @@
         </property>
        </widget>
       </item>
+      <item>
+       <widget class="QPushButton" name="butTestVar">
+        <property name="text">
+         <string>Test Variable</string>
+        </property>
+       </widget>
+      </item>
      </layout>
     </item>
     <item row="0" column="0">
