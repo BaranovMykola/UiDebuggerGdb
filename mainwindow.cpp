@@ -38,7 +38,7 @@ MainWindow::MainWindow(QWidget *parent) :
     mProcess->start(QStringList() << "--interpreter=mi");
 
 //    ui->command->setText("target exec debug/gdb/compl.exe");
-    mProcess->openProject("debug/gdb/pairs.exe");
+    mProcess->openProject("debug/gdb/vec.exe");
     ui->command->setFocus();
     ui->treeWidget->setColumnCount(2);
 }
@@ -78,6 +78,8 @@ void MainWindow::addTreeChildren(QTreeWidgetItem *parrent, Variable var, QString
     std::vector<Variable> nestedTypes = var.getNestedTypes();
     for(auto i : nestedTypes)
     {
+        QString likelyType = mProcess->getVarType(i.getName());
+        i.setType(likelyType.isEmpty() ? "<No info>" : likelyType);
         addTreeChild(parrent, i, prefix);
     }
 }
