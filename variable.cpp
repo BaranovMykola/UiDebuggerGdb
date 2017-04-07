@@ -104,7 +104,7 @@ QStringList Variable::readNestedStruct(const QString &vec) const
     QStringList res;
     for (int i = vec.indexOf('{'); i>=0 && i < vec.size(); i++)
     {
-        if (vec[i] == '{') { ++level; continue;}
+        if (vec[i] == '{') { ++level;}
         if (vec[i] == '}'){ --level; }
         QString behind = "";
         if (i + 2 < vec.size()) behind = vec.mid(i, 2);
@@ -121,6 +121,10 @@ QStringList Variable::readNestedStruct(const QString &vec) const
             }
             else if(!key.isEmpty() && !value.isEmpty())
             {
+                value[0] = ' ';
+                value[1] = ' ';
+//                value.append('}');
+                value = value.trimmed();
                 res << QString("%1|%2").arg(key).arg(value);
             }
             if(i + 2 < vec.size())
@@ -141,6 +145,7 @@ QStringList Variable::readNestedStruct(const QString &vec) const
         }
         if (capture)
         {
+            if(vec[i] == '{' && key.size() == 0) continue;
             key += vec[i];
         }
     }
@@ -156,7 +161,7 @@ std::vector<Variable> Variable::getNestedTypes() const
         QStringList varInfo = i.split('|');
         if(varInfo.size() == 2)
         {
-            nestedTypes.emplace_back(QString("(%1).%2").arg(mName).arg(varInfo[0]), "<No info>", varInfo[1]);
+            nestedTypes.emplace_back(QString("%1.%2").arg(mName).arg(varInfo[0]), "<No info>", varInfo[1]);
         }
     }
     return nestedTypes;

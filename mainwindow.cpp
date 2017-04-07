@@ -75,7 +75,11 @@ void MainWindow::addTreeChild(QTreeWidgetItem *parent, Variable var, QString pre
 
 void MainWindow::addTreeChildren(QTreeWidgetItem *parrent, Variable var, QString prefix)
 {
-
+    std::vector<Variable> nestedTypes = var.getNestedTypes();
+    for(auto i : nestedTypes)
+    {
+        addTreeChild(parrent, i, prefix);
+    }
 }
 
 // target exec D:\Studying\Programming\Qt\My Project\build-UiDebuggerGdb-Custom_Kit-Debug\debug\gdb\gdb.exe
@@ -199,16 +203,17 @@ void MainWindow::slotUpdtaeLocals()
     ui->treeWidget->clear();
     for(auto i : locals)
     {
-        ui->designOutput->appendPlainText(QString("Name: %1 Value: %2 Type: %3").arg(i.getName())
-                                          .arg(i.getContent()).arg(i.getType()));
-        std::vector<Variable> nestedTypes = i.getNestedTypes();
-        for(auto n : nestedTypes)
-        {
-            QString likelyType = mProcess->getVarType(n.getName());
-            n.setType(likelyType.isEmpty() ? "<No info>" : likelyType);
-            ui->designOutput->appendPlainText(QString("\tName: %1 Value: %2 Type: %3").arg(n.getName())
-                                              .arg(n.getContent()).arg(n.getType()));
-        }
+        addTreeRoot(i);
+//        ui->designOutput->appendPlainText(QString("Name: %1 Value: %2 Type: %3").arg(i.getName())
+//                                          .arg(i.getContent()).arg(i.getType()));
+//        std::vector<Variable> nestedTypes = i.getNestedTypes();
+//        for(auto n : nestedTypes)
+//        {
+//            QString likelyType = mProcess->getVarType(n.getName());
+//            n.setType(likelyType.isEmpty() ? "<No info>" : likelyType);
+//            ui->designOutput->appendPlainText(QString("\tName: %1 Value: %2 Type: %3").arg(n.getName())
+//                                              .arg(n.getContent()).arg(n.getType()));
+//        }
     }
 }
 
