@@ -4,6 +4,7 @@
 #include <QProcess>
 #include <QDebug>
 #include <QTextStream>
+#include <algorithm>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -32,13 +33,14 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->butGetVarType, SIGNAL(clicked(bool)), this, SLOT(slotGetVarType()), Qt::UniqueConnection);
     connect(ui->butReadPointer, SIGNAL(clicked(bool)), this, SLOT(slotReadPointer()), Qt::UniqueConnection);
     connect(ui->butTestVar, SIGNAL(clicked(bool)), this, SLOT(slotTestVariable()), Qt::UniqueConnection);
+    connect(ui->treeWidget, SIGNAL(itemExpanded(QTreeWidgetItem*)), this, SLOT(slotItemExpanded(QTreeWidgetItem*)), Qt::UniqueConnection);
 
     QFile file(qApp->applicationDirPath().append("/gdb/gdb.exe"));
     qDebug() << "File exist: " << (file.exists());
     mProcess->start(QStringList() << "--interpreter=mi");
 
 //    ui->command->setText("target exec debug/gdb/compl.exe");
-    mProcess->openProject("debug/gdb/vec.exe");
+    mProcess->openProject("debug/gdb/lst.exe");
     ui->command->setFocus();
     ui->treeWidget->setColumnCount(2);
 }
@@ -61,27 +63,66 @@ void MainWindow::addTreeRoot(Variable var)
     addTreeChildren(treeItem, var, "");
 }
 
-void MainWindow::addTreeChild(QTreeWidgetItem *parent, Variable var, QString prefix)
+void MainWindow::addTreeChild(QTreeWidgetItem *parent, Variable var, QString prefix, bool internal = false)
 {
     QTreeWidgetItem *treeItem = new QTreeWidgetItem();
 
     // QTreeWidgetItem::setText(int column, const QString & text)
     treeItem->setText(0, var.getName());
     treeItem->setText(1, var.getContent().append(" (%1)").arg(var.getType()));
-    addTreeChildren(treeItem, var, prefix);
     // QTreeWidgetItem::addChild(QTreeWidgetItem * child)
+    if(!internal)
+    {
+        addTreeChildren(treeItem, var, prefix);
+    }
     parent->addChild(treeItem);
 }
 
 void MainWindow::addTreeChildren(QTreeWidgetItem *parrent, Variable var, QString prefix)
 {
     std::vector<Variable> nestedTypes = var.getNestedTypes();
+    if(var.isPointer())
+    {
+        qDebug() << var.getName() << " is a pointer";
+        QString dereferencedVarName = QString("*(%1)").arg(var.getName());
+//        Variable dereferencedVar(var.getContent(),  // TODO: make more pretty in the future
+//                                 mProcess->getVarType(dereferencedVarName),
+//                                 mProcess->getVarContent(dereferencedVarName));
+        //  var.setContent(var);
+        addTreeChild(parrent, var, "", true);
+//        mPointers.push_back(parrent);
+        mPointersName[parrent] = var;
+    }
     for(auto i : nestedTypes)
     {
         QString likelyType = mProcess->getVarType(i.getName());
         i.setType(likelyType.isEmpty() ? "<No info>" : likelyType);
         addTreeChild(parrent, i, prefix);
     }
+}
+
+void MainWindow::moidifyTreeItemPointer(QTreeWidgetItem *itemPointer)
+{
+//    QString pointerName = itemPointer->data(0,0).toString();
+    Variable pointer = mPointersName[itemPointer];
+    QString address = pointer.getContent();
+    QString type = pointer.getType();
+    QString name = pointer.getName();
+    qDebug() << "Processing on dereferencing pointer " << pointer.getName() << " (" << type << ") " << address;
+
+    QString drfName = tr("(*%1)").arg(name);
+    QString drfAddressContent = mProcess->getVarContent(drfName);
+    QString drfAddressType = mProcess->getVarType(drfName);
+    qDebug() << "Dereferenced: " << drfAddressContent;
+    Variable drfPointer(drfName, drfAddressType, drfAddressContent);
+
+    QTreeWidgetItem* child = itemPointer->child(0);
+    QString plainName = drfName.split('.').last();
+    child->setText(0, plainName);
+    child->setText(1, QString("%1 (%2)").arg(drfAddressContent)
+                         .arg(drfAddressType));
+itemPointer->removeChild(child);
+    addTreeChildren(itemPointer, drfPointer, "");
 }
 
 // target exec D:\Studying\Programming\Qt\My Project\build-UiDebuggerGdb-Custom_Kit-Debug\debug\gdb\gdb.exe
@@ -242,4 +283,22 @@ void MainWindow::slotTestVariable()
         qDebug() << i;
     }
 
+}
+
+void MainWindow::slotItemExpanded(QTreeWidgetItem *item)
+{
+//    auto foundIterator = std::find(mPointers.begin(), mPointers.end(), item);
+//    if(foundIterator != mPointers.end())
+//    {
+//        qDebug() << "Pointer expanded";
+//        moidifyTreeItemPointer(item);
+//        mPointers.erase(foundIterator);
+//    }
+    auto foundIterator = mPointersName.find(item);
+    if(foundIterator != mPointersName.end())
+    {
+            qDebug() << "Pointer expanded";
+            moidifyTreeItemPointer(item);
+            mPointersName.erase(foundIterator);
+    }
 }

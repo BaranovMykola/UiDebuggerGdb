@@ -19,9 +19,11 @@ public:
     ~MainWindow();
     void addTreeRoot(Variable var);
     void addTreeChild(QTreeWidgetItem *parent,
-                      Variable var, QString prefix);
+                      Variable var, QString prefix, bool internal);
     void addTreeChildren(QTreeWidgetItem* parrent,
                       Variable var, QString prefix);
+
+    void moidifyTreeItemPointer(QTreeWidgetItem* itemPointer);
 private slots:
     void slotReadOutput();
     void slotWriteToProcess();
@@ -41,10 +43,13 @@ private slots:
     void slotGetVarType();
     void slotReadPointer();
     void slotTestVariable();
+    void slotItemExpanded(QTreeWidgetItem* item);
 private:
     Ui::MainWindow *ui;
     Gdb *mProcess;
     DebugWindow mDebugWindow;
+    std::list<QTreeWidgetItem*> mPointers;
+    std::map<QTreeWidgetItem*, Variable> mPointersName;
 };
 
 #endif // MAINWINDOW_H

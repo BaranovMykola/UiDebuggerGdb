@@ -18,6 +18,8 @@ public:
 
     std::vector<Variable> getNestedTypes()const;
     void setType(const QString& type);
+    bool isPointer()const;
+    void setContent(const QString& content);
 private:
 
     QString mName;

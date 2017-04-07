@@ -171,3 +171,14 @@ void Variable::setType(const QString &type)
 {
     mType = type;
 }
+
+bool Variable::isPointer() const
+{
+    QRegExp pointersMathc("\\*");
+    return pointersMathc.indexIn(mType) != -1;
+}
+
+void Variable::setContent(const QString &content)
+{
+    mContent = content;
+}
