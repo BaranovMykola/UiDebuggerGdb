@@ -68,7 +68,8 @@ void MainWindow::addTreeChild(QTreeWidgetItem *parent, Variable var, QString pre
     QTreeWidgetItem *treeItem = new QTreeWidgetItem();
 
     // QTreeWidgetItem::setText(int column, const QString & text)
-    treeItem->setText(0, var.getName());
+    QString plainName = var.getName().split('.').last();
+    treeItem->setText(0, plainName);
     treeItem->setText(1, var.getContent().append(" (%1)").arg(var.getType()));
     // QTreeWidgetItem::addChild(QTreeWidgetItem * child)
     if(!internal)
