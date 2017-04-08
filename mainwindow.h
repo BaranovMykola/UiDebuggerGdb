@@ -21,7 +21,7 @@ public:
     void addTreeChild(QTreeWidgetItem *parent,
                       Variable var, QString prefix, bool internal);
     void addTreeChildren(QTreeWidgetItem* parrent,
-                      Variable var, QString prefix);
+                      Variable var, QString prefix, bool drfPointer = false);
 
     void moidifyTreeItemPointer(QTreeWidgetItem* itemPointer);
 private slots:

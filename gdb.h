@@ -22,8 +22,8 @@ public:
     void readStdOutput();
     void readErrOutput();
     const QString& getOutput()const;
-    QStringList getLocalVar();
-    QStringList getArgVar();
+//    QStringList getLocalVar();
+//    QStringList getArgVar();
     void openProject(const QString& fileName);
     void run();
     void stepOver();
@@ -33,13 +33,17 @@ public:
     void stepOut();
     int getCurrentLine();
     void updateBreakpointsList();
-    void updateLocalVariables();
-    void updateArgVariables();
-    //std::vector<Variable> getArgVariables()const;
+//    void updateLocalVariables();
+//    void updateArgVariables();
     std::vector<Breakpoint> getBreakpoints()const;
     std::vector<Variable> getLocalVariables()const;
     QString getVarContent(const QString& var);
     QString getVarType(const QString& variable);
+
+    void updateCertainVariables(QStringList varList);
+    QStringList getVariablesFrom(QStringList frame);
+    QStringList getVariableList(const QString& frame);
+
     void globalUpdate(); // NEED REFACTORING
 public slots:
     void slotReadStdOutput();

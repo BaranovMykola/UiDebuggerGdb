@@ -80,9 +80,13 @@ void MainWindow::addTreeChild(QTreeWidgetItem *parent, Variable var, QString pre
     parent->addChild(treeItem);
 }
 
-void MainWindow::addTreeChildren(QTreeWidgetItem *parrent, Variable var, QString prefix)
+void MainWindow::addTreeChildren(QTreeWidgetItem *parrent, Variable var, QString prefix, bool drfPointer)
 {
     std::vector<Variable> nestedTypes = var.getNestedTypes();
+    if(drfPointer && nestedTypes.size() ==0)
+    {
+        addTreeChild(parrent, var, "", false);
+    }
     if(var.isPointer())
     {
         QString dereferencedVarName = QString("*(%1)").arg(var.getName());
@@ -108,7 +112,7 @@ void MainWindow::moidifyTreeItemPointer(QTreeWidgetItem *itemPointer)
 
     QTreeWidgetItem* child = itemPointer->child(0); //Pointer's node always has ony one shils so it's index is '0'
     itemPointer->removeChild(child);    //remove internal node in tree
-    addTreeChildren(itemPointer, drfPointer, "");   //append dereferenced pointer to node with addres
+    addTreeChildren(itemPointer, drfPointer, "", true);   //append dereferenced pointer to node with addres
 }
 
 // target exec D:\Studying\Programming\Qt\My Project\build-UiDebuggerGdb-Custom_Kit-Debug\debug\gdb\gdb.exe
@@ -134,7 +138,7 @@ void MainWindow::slotWriteToProcess()
 
 void MainWindow::slotGetLocalVar()
 {
-    mProcess->getLocalVar();
+//    mProcess->getLocalVar();
 
     //ui->echo->appendPlainText(mProcess->peekLocalVar());
 }
@@ -216,11 +220,11 @@ void MainWindow::slotShowVar()
 
 void MainWindow::slotShowLocal()
 {
-    auto vars = mProcess->getLocalVar();
-    for(auto i : vars)
-    {
-        ui->designOutput->appendPlainText(i.append(mProcess->getVarContent(i)).append("\n"));
-    }
+//    auto vars = mProcess->getLocalVar();
+//    for(auto i : vars)
+//    {
+//        ui->designOutput->appendPlainText(i.append(mProcess->getVarContent(i)).append("\n"));
+//    }
 }
 
 void MainWindow::slotUpdtaeLocals()
