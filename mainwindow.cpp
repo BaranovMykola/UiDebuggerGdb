@@ -40,7 +40,7 @@ MainWindow::MainWindow(QWidget *parent) :
     mProcess->start(QStringList() << "--interpreter=mi");
 
 //    ui->command->setText("target exec debug/gdb/compl.exe");
-    mProcess->openProject("debug/gdb/lst.exe");
+    mProcess->openProject("debug/gdb/compl(38).exe");
     ui->command->setFocus();
     ui->treeWidget->setColumnCount(2);
 }
@@ -112,6 +112,12 @@ void MainWindow::moidifyTreeItemPointer(QTreeWidgetItem *itemPointer)
 
     QTreeWidgetItem* child = itemPointer->child(0); //Pointer's node always has ony one shils so it's index is '0'
     itemPointer->removeChild(child);    //remove internal node in tree
+    if(drfPointer.getNestedTypes().size() == 0 && !drfPointer.isPointer())
+    {
+        addTreeChild(itemPointer, drfPointer, "", false);
+        qDebug() << "drfPointer has only one nested type && it's not pointer";
+        return;
+    }
     addTreeChildren(itemPointer, drfPointer, "", true);   //append dereferenced pointer to node with addres
 }
 
