@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>874</width>
-    <height>533</height>
+    <height>542</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -119,6 +119,13 @@
        <widget class="QPushButton" name="butTestVar">
         <property name="text">
          <string>Test Variable</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="butContinue">
+        <property name="text">
+         <string>Continue</string>
         </property>
        </widget>
       </item>

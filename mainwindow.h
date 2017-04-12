@@ -44,6 +44,7 @@ private slots:
     void slotReadPointer();
     void slotTestVariable();
     void slotItemExpanded(QTreeWidgetItem* item);
+    void slotContinue();
 private:
     Ui::MainWindow *ui;
     Gdb *mProcess;

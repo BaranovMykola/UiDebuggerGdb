@@ -34,13 +34,14 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->butReadPointer, SIGNAL(clicked(bool)), this, SLOT(slotReadPointer()), Qt::UniqueConnection);
     connect(ui->butTestVar, SIGNAL(clicked(bool)), this, SLOT(slotTestVariable()), Qt::UniqueConnection);
     connect(ui->treeWidget, SIGNAL(itemExpanded(QTreeWidgetItem*)), this, SLOT(slotItemExpanded(QTreeWidgetItem*)), Qt::UniqueConnection);
+    connect(ui->butContinue, SIGNAL(clicked(bool)), this, SLOT(slotContinue()), Qt::UniqueConnection);
 
     QFile file(qApp->applicationDirPath().append("/gdb/gdb.exe"));
     qDebug() << "File exist: " << (file.exists());
     mProcess->start(QStringList() << "--interpreter=mi");
 
 //    ui->command->setText("target exec debug/gdb/compl.exe");
-    mProcess->openProject("debug/gdb/compl(38).exe");
+    mProcess->openProject("debug/gdb/lst.exe");
     ui->command->setFocus();
     ui->treeWidget->setColumnCount(2);
 }
@@ -289,4 +290,9 @@ void MainWindow::slotItemExpanded(QTreeWidgetItem *item)
             moidifyTreeItemPointer(item);
             mPointersName.erase(foundIterator);
     }
+}
+
+void MainWindow::slotContinue()
+{
+    mProcess->stepContinue();
 }
