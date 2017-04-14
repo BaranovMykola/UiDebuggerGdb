@@ -35,6 +35,8 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->butTestVar, SIGNAL(clicked(bool)), this, SLOT(slotTestVariable()), Qt::UniqueConnection);
     connect(ui->treeWidget, SIGNAL(itemExpanded(QTreeWidgetItem*)), this, SLOT(slotItemExpanded(QTreeWidgetItem*)), Qt::UniqueConnection);
     connect(ui->butContinue, SIGNAL(clicked(bool)), this, SLOT(slotContinue()), Qt::UniqueConnection);
+    connect(ui->butKill, SIGNAL(clicked(bool)), this, SLOT(slotKill()), Qt::UniqueConnection);
+    connect(ui->butStopExecuting, SIGNAL(clicked(bool)), this, SLOT(slotStipExecuting()), Qt::UniqueConnection);
 
     QFile file(qApp->applicationDirPath().append("/gdb/gdb.exe"));
     qDebug() << "File exist: " << (file.exists());
@@ -295,4 +297,14 @@ void MainWindow::slotItemExpanded(QTreeWidgetItem *item)
 void MainWindow::slotContinue()
 {
     mProcess->stepContinue();
+}
+
+void MainWindow::slotKill()
+{
+    mProcess->kill();
+}
+
+void MainWindow::slotStipExecuting()
+{
+    mProcess->stopExecuting();
 }
