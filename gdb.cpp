@@ -211,7 +211,7 @@ QString Gdb::getVarType(const QString &variable)
     */
     write(QByteArray("whatis ").append(variable));
     QProcess::waitForReadyRead(1000);
-    QRegExp findType("type\\s=\\s[\\w:\\*\\s\<\>\,]+"); // find string after 'type = ' included only characters,
+    QRegExp findType("type\\s\\=\\s[\\w:\\*\\s\\<\\>\\,]+"); // find string after 'type = ' included only characters,
                                                  // digits, uderscores, '*' and whitespaces
     if(findType.indexIn(mBuffer) == -1) // if not found
     {
