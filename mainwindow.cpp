@@ -43,7 +43,7 @@ MainWindow::MainWindow(QWidget *parent) :
     mProcess->start(QStringList() << "--interpreter=mi");
 
 //    ui->command->setText("target exec debug/gdb/compl.exe");
-    mProcess->openProject("debug/gdb/lst.exe");
+    mProcess->openProject("debug/gdb/compl(38).exe");
     ui->command->setFocus();
     ui->treeWidget->setColumnCount(2);
 }
