@@ -9,8 +9,7 @@
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
-    mProcess{new Gdb("debug/gdb/gdb.exe")},
-    mDebugWindow{}
+    mProcess{new Gdb("debug/gdbx64/bin/gdb.exe")}
 {
     ui->setupUi(this);
 
@@ -37,13 +36,14 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->butContinue, SIGNAL(clicked(bool)), this, SLOT(slotContinue()), Qt::UniqueConnection);
     connect(ui->butKill, SIGNAL(clicked(bool)), this, SLOT(slotKill()), Qt::UniqueConnection);
     connect(ui->butStopExecuting, SIGNAL(clicked(bool)), this, SLOT(slotStipExecuting()), Qt::UniqueConnection);
+    connect(mProcess, SIGNAL(signalUpdatedVariables()), this, SLOT(slotShowVariables()), Qt::UniqueConnection);
 
     QFile file(qApp->applicationDirPath().append("/gdb/gdb.exe"));
     qDebug() << "File exist: " << (file.exists());
     mProcess->start(QStringList() << "--interpreter=mi");
 
-//    ui->command->setText("target exec debug/gdb/compl.exe");
-    mProcess->openProject("debug/gdb/lst.exe");
+//    ui->command->setText("target exec debug/gdbx64/main.exe");
+    mProcess->openProject("debug/gdbx64/main.exe");
     ui->command->setFocus();
     ui->treeWidget->setColumnCount(2);
 }
@@ -238,14 +238,18 @@ void MainWindow::slotShowLocal()
 
 void MainWindow::slotUpdtaeLocals()
 {
-//    mProcess->updateLocalVariables();
-//    mProcess->updateArgVariables();
-    mProcess->globalUpdate();
+    mProcess->updateVariable64x();
+
+}
+
+void MainWindow::slotShowVariables()
+{
     auto locals = mProcess->getLocalVariables();
     ui->treeWidget->clear();
     for(auto i : locals)
     {
-        addTreeRoot(i);
+        //addTreeRoot(i);
+        ui->designOutput->appendPlainText(tr("%1\t%2\t%3").arg(i.getName()).arg(i.getContent()).arg(i.getType()));
 //        ui->designOutput->appendPlainText(QString("Name: %1 Value: %2 Type: %3").arg(i.getName())
 //                                          .arg(i.getContent()).arg(i.getType()));
 //        std::vector<Variable> nestedTypes = i.getNestedTypes();

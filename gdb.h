@@ -20,6 +20,15 @@ public:
                 QProcess::OpenMode mode = QIODevice::ReadWrite);
     void write(QByteArray &command);
     void readStdOutput();
+
+public slots:
+    void readFrame();
+    void readType(const QString& varName);
+public:
+
+    QString getVarContentFromContext(const QString& context);
+    void updateVariablesInFrame32x(const QString &frame);
+
     void readErrOutput();
     const QString& getOutput()const;
     void openProject(const QString& fileName);
@@ -40,6 +49,11 @@ public:
     void updateCertainVariables(QStringList varList);
     QStringList getVariablesFrom(QStringList frame);
     QStringList getVariableList(const QString& frames);
+
+    QStringList getVariableListFromContext(const QString& context);
+
+    void updateVariable64x();
+
     void globalUpdate();
     void setGdbPath(const QString& path);
 public slots:
@@ -48,12 +62,20 @@ public slots:
 signals:
     void signalLocalVarRecieved(const QString&);
     void signalErrorOccured(const QString&);
+    void signalUpdatedVariables();
 private:
     QFile mGdbFile;
     QString mErrorMessage;
     QString mBuffer;
     std::vector<Breakpoint> mBreakpointsList;
     std::vector<Variable> mVariablesList;
+
+
+    QString temp;
+    bool mInfoCaptured;
+    bool mWhatisCaptured;
+    QString mWhatisBuffer;
+    bool collect;
 };
 
 #endif // GDB_H

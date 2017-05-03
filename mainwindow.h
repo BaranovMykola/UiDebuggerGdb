@@ -2,8 +2,8 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QTreeWidget>
 #include "gdb.h"
-#include "debugwindow.h"
 
 namespace Ui {
 class MainWindow;
@@ -40,6 +40,9 @@ private slots:
     void slotShowVar();
     void slotShowLocal();
     void slotUpdtaeLocals();
+
+    void slotShowVariables();
+
     void slotGetVarType();
     void slotReadPointer();
     void slotTestVariable();
@@ -50,7 +53,6 @@ private slots:
 private:
     Ui::MainWindow *ui;
     Gdb *mProcess;
-    DebugWindow mDebugWindow;
     std::list<QTreeWidgetItem*> mPointers;
     std::map<QTreeWidgetItem*, Variable> mPointersName;
 };

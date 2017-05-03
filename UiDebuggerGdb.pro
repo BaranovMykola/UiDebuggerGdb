@@ -27,14 +27,11 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     gdb.cpp \
     breakpoint.cpp \
-    variable.cpp \
-    debugwindow.cpp
+    variable.cpp
 
 HEADERS  += mainwindow.h \
     gdb.h \
     breakpoint.h \
-    variable.h \
-    debugwindow.h
+    variable.h
 
 FORMS    += mainwindow.ui \
-    debugwindow.ui

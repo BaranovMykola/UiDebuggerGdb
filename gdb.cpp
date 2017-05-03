@@ -8,7 +8,9 @@ Gdb::Gdb()
 {
 }
 
-Gdb::Gdb(QString gdbPath)
+Gdb::Gdb(QString gdbPath):
+    mInfoCaptured{false},
+    mWhatisCaptured{false}
 {
     mGdbFile.setFileName(gdbPath);
     connect(this, SIGNAL(readyReadStandardOutput()), this, SLOT(slotReadStdOutput()), Qt::UniqueConnection);
@@ -40,14 +42,160 @@ void Gdb::readStdOutput()
 {   //Reads all standart output from GDB
     mBuffer = QProcess::readAll();
     QRegExp errorMatch("\\^error");
+    QRegExp info("info\\s");
+    QRegExp doneOrError("\\^done|\\^error");
+    QRegExp whatis("whatis\\s");
+    if(whatis.indexIn(mBuffer) != -1)
+    {
+        //qDebug() << "[READ STD] Finding type of variable";
+      //  qDebug() << mBuffer;
+        mWhatisBuffer.append(mBuffer);
+        mWhatisCaptured = true;
+    }
+    int lastDoneorError = mWhatisBuffer.lastIndexOf("^done");
+    int lastWhatis = mWhatisBuffer.lastIndexOf("whatis");
+    if(doneOrError.indexIn(mBuffer) != -1 && mWhatisCaptured
+            && lastWhatis < lastDoneorError)
+    {
+       // qDebug() << "Try to read types from : " << mWhatisBuffer;
+        mWhatisCaptured = false;
+        readType(mWhatisBuffer);
+        mWhatisBuffer.clear();
+    }
+    if(info.indexIn(mBuffer) != -1)
+    {
+//        qDebug() << "[READ STD]: 'info' captured";
+//        qDebug() << mBuffer << "\n\n";
+        mInfoCaptured = true;
+        mVariablesList.clear();
+    }
+    if(mInfoCaptured)
+    {
+        readFrame();
+    }
+    if(doneOrError.indexIn(mBuffer) != -1)
+    {
+//        qDebug() << "[READ STD]: '(gdb)' captured. Ended reading frame";
+//        qDebug() << mBuffer << "\n\n";
+        mInfoCaptured = false;
+    }
+
+    if(collect)
+    {
+        temp.append(mBuffer);
+        if(doneOrError.indexIn(mBuffer) != -1)
+        {
+            collect = false;
+            qDebug() << temp;
+            getVariableListFromContext(temp);
+        }
+    }
     if(errorMatch.indexIn(mBuffer) != -1)
     {
+        qDebug() << "error matched";
         QRegExp errorMsg("msg=[\\w\\s\"]+");
         errorMsg.indexIn(mBuffer);
         mErrorMessage = errorMsg.cap();
         emit signalErrorOccured(mErrorMessage);
     }
 }
+
+void Gdb::readFrame()
+{
+//    qDebug() << "[READ FRAME] mBuffer = " << mBuffer << "\n";
+    updateVariablesInFrame32x("smth unused...");
+}
+
+void Gdb::readType(const QString &varName)
+{
+    QRegExp findType("type\\s\\=\\s[\\w:\\*\\s\\<\\>\\,]+"); // find string after 'type = ' included only characters,
+                                                 // digits, uderscores, '*' and whitespaces
+    QRegExp name("whatis\\s\\w+");
+    int pos = 0;
+//    qDebug() << "[READ STD] Processing " << varName;
+    do
+    {
+        name.indexIn(varName, pos+1);
+        pos = findType.indexIn(varName, pos+1);
+        if(pos != -1)
+        {
+        QString type = findType.cap();
+        QString bareType = type.split('=')[1].trimmed(); // type is string after 'type = '
+//        qDebug() << "[READ TYPE] Captured type: " << type;
+        QString nameStr = name.cap();
+        QString bareName = nameStr.split(' ')[1].trimmed();
+        qDebug() << bareName << " = " << bareType;
+        auto changeTypeVar = std::find_if(mVariablesList.begin(), mVariablesList.end(), [&](Variable v){return v.getName() == bareName;});
+        changeTypeVar->setType(bareType);
+        int h = 0;
+//        qDebug() << nameStr;
+//        qDebug() << nameString << " - " << bareType;
+        }
+        else
+        {
+//            qDebug() << "[READ TYPE] Not found anything at " << varName;
+        }
+    }
+    while(pos != -1);
+    if(std::all_of(mVariablesList.begin(), mVariablesList.end(), [](Variable v){return !v.getType().isEmpty();}))
+    {
+        emit signalUpdatedVariables();
+    }
+}
+
+QString Gdb::getVarContentFromContext(const QString &context)
+{   // Produces variable value by GDB output
+    QRegExp content("=\\s.*\\^done"); // match string beginning with '= ' and ending with '^done'
+    QRegExp clean("[\\\\\"|~]"); // find all garbage characters '\', '"', '~'
+    QRegExp pointerMatch("\\(.*\\s*\\)\\s0x[\\d+abcdef]+"); // try to regonize pointer content
+                                                            // (SOME_TYPE *) 0x6743hf2
+    if(pointerMatch.indexIn(context) != -1)
+    {
+        QString addres = pointerMatch.cap().split(' ').last();  // get only hex addres
+        return addres;
+    }
+    content.indexIn(context);
+    QString res = content.cap().replace(clean, "").replace("^done", "").trimmed();
+    /* Removed all line breaks */
+    auto lst = res.split('\n');
+    for(QString& i : lst)
+    {
+        i = i.trimmed();
+    }
+    QString withoutLines = lst.join(""); // complete one QString again
+    withoutLines.remove(0, 2); // first two charactes are garbage too '= '
+    return withoutLines;
+}
+
+void Gdb::updateVariablesInFrame32x(const QString &frame)
+{   // Read variables from frame $frame$
+    QRegExp clean("~|\"|\\s|=");// find all garbage character
+
+    QStringList vars = mBuffer.split("\\n");
+    for(auto i : vars)
+    {
+        QStringList broke = i.split(" = ");
+        QString value;
+        for(int i=1;i<broke.size();++i)
+        {
+            value.append(broke[i]);
+            if(i+1 != broke.size())
+            {
+                value.append(" = ");
+            }
+        }
+        value = value.prepend(" = ");
+        value = value.append("^done");
+        QString content = getVarContentFromContext(value);
+        if(!content.isEmpty())
+        {
+            mVariablesList.emplace_back(broke[0].replace(clean, ""), getVarType(broke[0].replace(clean, "")), content);
+        }
+    }
+
+}
+
+
 
 void Gdb::readErrOutput()
 {
@@ -242,6 +390,7 @@ QStringList Gdb::getVariablesFrom(QStringList frames)
 QStringList Gdb::getVariableList(const QString &frame)
 {   //returns variables name in certain frame $frame$
     write(QByteArray("info ").append(frame));
+    bool wait = true;
     QProcess::waitForReadyRead(1000);
     QRegExp varMatch("\"\\w+\\s="); // find substring from '"' to '=' included only characters,
                                     // digits and whitespaces (it's a var name)
@@ -260,11 +409,36 @@ QStringList Gdb::getVariableList(const QString &frame)
     return varList;
 }
 
+QStringList Gdb::getVariableListFromContext(const QString &context)
+{
+    QRegExp varMatch("\"\\w+\\s="); // find substring from '"' to '=' included only characters,
+                                    // digits and whitespaces (it's a var name)
+    int pos = 0;
+    QStringList varList;
+    while(pos != -1)// reads all matches
+    {
+        pos = varMatch.indexIn(context, pos+1);//find next matches
+        QRegExp clean("\"|\\s|=");// find all garbage characters
+        QString varName = varMatch.cap().replace(clean, "").trimmed();// clean garbage and whitespaces
+        if(!varName.isEmpty())
+        {
+            varList << varName;
+            qDebug() << varName;
+        }
+    }
+    return varList;
+}
+
+void Gdb::updateVariable64x()
+{
+    write(QByteArray("info local"));
+}
+
 void Gdb::globalUpdate()
 {   // update all informations
     mVariablesList.clear(); // clear old info
-    updateBreakpointsList();
-    updateCertainVariables(getVariablesFrom(QStringList() << "local" << "arg"));
+    //updateBreakpointsList();
+    //updateCertainVariables(getVariablesFrom(QStringList() << "local"));
 }
 
 void Gdb::setGdbPath(const QString &path)
