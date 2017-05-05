@@ -11,6 +11,12 @@ class MainWindow;
 
 class QProcess;
 
+struct VarComp {
+    bool operator()(const Variable& a, const Variable& b) const {
+        return a.getName() < b.getName();
+    }
+};
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -56,6 +62,7 @@ private:
     Gdb *mProcess;
     std::list<QTreeWidgetItem*> mPointers;
     std::map<QTreeWidgetItem*, Variable> mPointersName;
+    std::map<Variable, QTreeWidgetItem*, VarComp> mTypeVar;
 };
 
 #endif // MAINWINDOW_H

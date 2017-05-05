@@ -26,6 +26,7 @@ public:
 public slots:
     void readFrame();
     void readType(const QString& varName);
+    void readPrint(const QString& context);
 public:
 
     QString getVarContentFromContext(const QString& context);
@@ -66,6 +67,7 @@ signals:
     void signalErrorOccured(const QString&);
     void signalUpdatedVariables();
     void signalTypeUpdated(Variable var);
+    void signalContentUpdated(Variable var);
 private:
     QFile mGdbFile;
     QString mErrorMessage;
@@ -78,8 +80,11 @@ private:
     bool mInfoCaptured;
     bool mWhatisCaptured;
     QString mWhatisBuffer;
+    QString mPrintBuffer;
     bool collect;
     std::list<Variable> mVariableTypeQueue;
+    std::list<QString> mPointerContentQueue;
+    bool mPrintCaptured;
 };
 
 #endif // GDB_H

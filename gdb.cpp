@@ -10,7 +10,8 @@ Gdb::Gdb()
 
 Gdb::Gdb(QString gdbPath):
     mInfoCaptured{false},
-    mWhatisCaptured{false}
+    mWhatisCaptured{false},
+    mPrintCaptured{false}
 {
     mGdbFile.setFileName(gdbPath);
     connect(this, SIGNAL(readyReadStandardOutput()), this, SLOT(slotReadStdOutput()), Qt::UniqueConnection);
@@ -45,6 +46,23 @@ void Gdb::readStdOutput()
     QRegExp info("info\\s");
     QRegExp doneOrError("\\^done|\\^error");
     QRegExp whatis("whatis\\s");
+    QRegExp printRegex("print\\s");
+    bool doubleContext = false;
+    if(printRegex.indexIn(mBuffer) != -1)
+    {
+        doubleContext = true;
+        mPrintCaptured = true;
+        mPrintBuffer.append(mBuffer);
+    }
+    if(mPrintCaptured && doneOrError.indexIn(mBuffer) != -1)
+    {
+        if(!doubleContext)
+        {
+            mPrintBuffer.append(mBuffer);
+        }
+        readPrint(mPrintBuffer);
+        mPrintCaptured = false;
+    }
     if(whatis.indexIn(mBuffer) != -1)
     {
         //qDebug() << "[READ STD] Finding type of variable";
@@ -111,7 +129,7 @@ void Gdb::readType(const QString &varName)
 {
     QRegExp findType("type\\s\\=\\s[\\w:\\*\\s\\<\\>\\,]+"); // find string after 'type = ' included only characters,
                                                  // digits, uderscores, '*' and whitespaces
-    QRegExp name("whatis\\s\\w+");
+    QRegExp name("whatis\\s[\\w.]+");
     int pos = 0;
 //    qDebug() << "[READ STD] Processing " << varName;
     do
@@ -135,9 +153,8 @@ void Gdb::readType(const QString &varName)
         auto var = find_if(mVariableTypeQueue.begin(), mVariableTypeQueue.end(), [&](Variable var){return var.getName() == bareName;});
         var->setType(bareType);
         emit signalTypeUpdated(*var);
-        mVariableTypeQueue.remove_if([&](Variable var){return var.getName() == bareName;});
+        mVariableTypeQueue.erase(var);
 
-        int h = 0;
 //        qDebug() << nameStr;
 //        qDebug() << nameString << " - " << bareType;
         }
@@ -151,6 +168,47 @@ void Gdb::readType(const QString &varName)
     {
      //   emit signalUpdatedVariables();
     }
+}
+
+void Gdb::readPrint(const QString &context)
+{
+    QRegExp name("print\\s[\\w.*)(]+");
+    name.indexIn(context);
+    QString nameStr = name.cap();
+    QString bareName = nameStr.split(' ')[1].trimmed();
+
+    QRegExp content("\(\=.*\)\(\(\\^\)done\)"); // match string beginning with '= ' and ending with '^done'
+    // \(\\^\)done
+    // \\s\=.*
+    //QRegExp content("\\s=.*(\^)done"); // match string beginning with '= ' and ending with '^done'
+
+    QRegExp clean("[\\\\\"|~]"); // find all garbage characters '\', '"', '~'
+    QRegExp pointerMatch("\\(.*\\s*\\)\\s0x[\\d+abcdef]+"); // try to regonize pointer content
+                                                          // (SOME_TYPE *) 0x6743hf2
+//    if(pointerMatch.indexIn(context) != -1)
+//    {
+//      QString addres = pointerMatch.cap().split(' ').last();  // get only hex addres
+//      //emit signalContentUpdated(Variable());
+//    }
+    content.indexIn(context);
+    QString bareRes = content.cap();
+    QString firstMatches = bareRes.split(QString("^done")).first();
+//    qDebug() << "context = " << context;
+//    qDebug() << "bareRes = " << bareRes;
+//    qDebug() << "firstMAthces = " << firstMatches;
+    QString res = firstMatches.replace(clean, "").replace("^done", "").trimmed();
+    res.resize(res.size()-1); // last character is garbate too
+    /* Removed all line breaks */
+    auto lst = res.split('\n');
+    for(QString& i : lst)
+    {
+      i = i.trimmed();
+    }
+    QString withoutLines = lst.join(""); // complete one QString again
+    withoutLines.remove(0, 2); // first two charactes are garbage too '= '
+    //return withoutLines;
+    qDebug() << withoutLines;
+    mPrintBuffer.clear();
 }
 
 QString Gdb::getVarContentFromContext(const QString &context)
@@ -333,29 +391,31 @@ QString Gdb::getVarContent(const QString& var)
         ~"\n"
         ^done
     */
+    mPointerContentQueue.push_back(var);
     write(QByteArray("print ").append(var));
-    QProcess::waitForReadyRead(1000);
-    QRegExp content("=\\s.*\\^done"); // match string beginning with '= ' and ending with '^done'
-    QRegExp clean("[\\\\\"|~]"); // find all garbage characters '\', '"', '~'
-    QRegExp pointerMatch("\\(.*\\s*\\)\\s0x[\\d+abcdef]+"); // try to regonize pointer content
-                                                            // (SOME_TYPE *) 0x6743hf2
-    if(pointerMatch.indexIn(mBuffer) != -1)
-    {
-        QString addres = pointerMatch.cap().split(' ').last();  // get only hex addres
-        return addres;
-    }
-    content.indexIn(mBuffer);
-    QString res = content.cap().replace(clean, "").replace("^done", "").trimmed();
-    res.resize(res.size()-1); // last character is garbate too
-    /* Removed all line breaks */
-    auto lst = res.split('\n');
-    for(QString& i : lst)
-    {
-        i = i.trimmed();
-    }
-    QString withoutLines = lst.join(""); // complete one QString again
-    withoutLines.remove(0, 2); // first two charactes are garbage too '= '
-    return withoutLines;
+//    QProcess::waitForReadyRead(1000);
+//    QRegExp content("=\\s.*\\^done"); // match string beginning with '= ' and ending with '^done'
+//    QRegExp clean("[\\\\\"|~]"); // find all garbage characters '\', '"', '~'
+//    QRegExp pointerMatch("\\(.*\\s*\\)\\s0x[\\d+abcdef]+"); // try to regonize pointer content
+//                                                            // (SOME_TYPE *) 0x6743hf2
+//    if(pointerMatch.indexIn(mBuffer) != -1)
+//    {
+//        QString addres = pointerMatch.cap().split(' ').last();  // get only hex addres
+//        return addres;
+//    }
+//    content.indexIn(mBuffer);
+//    QString res = content.cap().replace(clean, "").replace("^done", "").trimmed();
+//    res.resize(res.size()-1); // last character is garbate too
+//    /* Removed all line breaks */
+//    auto lst = res.split('\n');
+//    for(QString& i : lst)
+//    {
+//        i = i.trimmed();
+//    }
+//    QString withoutLines = lst.join(""); // complete one QString again
+//    withoutLines.remove(0, 2); // first two charactes are garbage too '= '
+//    return withoutLines;
+    return QString();
 }
 
 QString Gdb::getVarType(Variable var)
@@ -365,8 +425,8 @@ QString Gdb::getVarType(Variable var)
         ~"type = Conjugate\n"
         ^done
     */
-    write(QByteArray("whatis ").append(var.getName()));
     mVariableTypeQueue.push_back(var);
+    write(QByteArray("whatis ").append(var.getName()));
 //    QProcess::waitForReadyRead(1000);
 //    QRegExp findType("type\\s\\=\\s[\\w:\\*\\s\\<\\>\\,]+"); // find string after 'type = ' included only characters,
 //                                                 // digits, uderscores, '*' and whitespaces

@@ -45,7 +45,7 @@ MainWindow::MainWindow(QWidget *parent) :
 //    ui->command->setText("target exec debug/gdbx64/main.exe");
     mProcess->openProject("debug/gdbx64/main.exe");
     ui->command->setFocus();
-    ui->treeWidget->setColumnCount(2);
+    ui->treeWidget->setColumnCount(3);
 }
 
 MainWindow::~MainWindow()
@@ -58,10 +58,12 @@ void MainWindow::addTreeRoot(Variable var)
     QTreeWidgetItem *treeItem = new QTreeWidgetItem(ui->treeWidget);
 
     // QTreeWidgetItem::setText(int column, const QString & text)
+    mTypeVar[var] = treeItem;
+    mProcess->getVarType(var);
     treeItem->setText(0, var.getName());
     QString varContent = var.getContent();
-    varContent.append(" (%1)");
-    varContent = varContent.arg(var.getType());
+//    varContent.append(" (%1)");
+//    varContent = varContent.arg(var.getType());
     treeItem->setText(1, varContent);
     addTreeChildren(treeItem, var, "");
 }
@@ -69,9 +71,13 @@ void MainWindow::addTreeRoot(Variable var)
 void MainWindow::addTreeChild(QTreeWidgetItem *parent, Variable var, QString prefix, bool internal = false)
 {
     QTreeWidgetItem *treeItem = new QTreeWidgetItem();
+    mTypeVar[var] = treeItem;
+    mProcess->getVarType(var);
+
+
     QString plainName = var.getName().split('.').last();
     treeItem->setText(0, plainName);
-    treeItem->setText(1, var.getContent().append(" (%1)").arg(var.getType()));
+//    treeItem->setText(1, var.getContent().append(" (%1)").arg(var.getType()));
     if(!internal)
     {
         addTreeChildren(treeItem, var, prefix);
@@ -98,9 +104,9 @@ void MainWindow::addTreeChildren(QTreeWidgetItem *parrent, Variable var, QString
     }
     for(auto i : nestedTypes)
     {
-        throw;
-        QString likelyType;/* = mProcess->getVarType(i.getName());*/
-        i.setType(likelyType.isEmpty() ? "<No info>" : likelyType);
+    //        throw;
+    //        QString likelyType;/* = mProcess->getVarType(i.getName());*/
+    //        i.setType(likelyType.isEmpty() ? "<No info>" : likelyType);
         addTreeChild(parrent, i, prefix, false);
     }
 }
@@ -111,8 +117,8 @@ void MainWindow::moidifyTreeItemPointer(QTreeWidgetItem *itemPointer)
 
     QString drfName = tr("(*%1)").arg(pointer.getName());
     QString drfAddressContent = mProcess->getVarContent(drfName);
-    throw;
-    QString drfAddressType;/* = mProcess->getVarType(drfName);*/
+    //throw;
+    QString drfAddressType = QString();/* = mProcess->getVarType(drfName);*/
     Variable drfPointer(drfName, drfAddressType, drfAddressContent);
 
     QTreeWidgetItem* child = itemPointer->child(0); //Pointer's node always has ony one shils so it's index is '0'
@@ -250,9 +256,9 @@ void MainWindow::slotShowVariables()
     ui->treeWidget->clear();
     for(auto i : locals)
     {
-        //addTreeRoot(i);
-        ui->designOutput->appendPlainText(tr("%1\t%2\t%3").arg(i.getName()).arg(i.getContent()).arg(i.getType()));
-        mProcess->getVarType(i);
+        addTreeRoot(i);
+       // ui->designOutput->appendPlainText(tr("%1\t%2\t%3").arg(i.getName()).arg(i.getContent()).arg(i.getType()));
+       // mProcess->getVarType(i);
 //        ui->designOutput->appendPlainText(QString("Name: %1 Value: %2 Type: %3").arg(i.getName())
 //                                          .arg(i.getContent()).arg(i.getType()));
 //        std::vector<Variable> nestedTypes = i.getNestedTypes();
@@ -268,7 +274,15 @@ void MainWindow::slotShowVariables()
 
 void MainWindow::slotTypeUpdated(Variable var)
 {
-    ui->designOutput->appendPlainText(tr("%1\t%2\t%3").arg(var.getName()).arg(var.getContent()).arg(var.getType()));
+    QTreeWidgetItem* item = mTypeVar[var];
+    //qDebug() << item->text(0) << var.getName();
+    item->setText(2, var.getType());
+    if(var.isPointer())
+    {
+        QString dereferencedVarName = QString("*(%1)").arg(var.getName());
+        addTreeChild(item, var, "", true);   //create fake node to enable expanding parent
+        mPointersName[item] = var;   //Add pointer's node to map and attach to this node pointer
+    }
 }
 
 void MainWindow::slotGetVarType()
