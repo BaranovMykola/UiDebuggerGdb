@@ -37,7 +37,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->butKill, SIGNAL(clicked(bool)), this, SLOT(slotKill()), Qt::UniqueConnection);
     connect(ui->butStopExecuting, SIGNAL(clicked(bool)), this, SLOT(slotStipExecuting()), Qt::UniqueConnection);
     connect(mProcess, SIGNAL(signalUpdatedVariables()), this, SLOT(slotShowVariables()), Qt::UniqueConnection);
-
+    connect(mProcess, SIGNAL(signalTypeUpdated(Variable)), this, SLOT(slotTypeUpdated(Variable)), Qt::UniqueConnection);
     QFile file(qApp->applicationDirPath().append("/gdb/gdb.exe"));
     qDebug() << "File exist: " << (file.exists());
     mProcess->start(QStringList() << "--interpreter=mi");
@@ -98,7 +98,8 @@ void MainWindow::addTreeChildren(QTreeWidgetItem *parrent, Variable var, QString
     }
     for(auto i : nestedTypes)
     {
-        QString likelyType = mProcess->getVarType(i.getName());
+        throw;
+        QString likelyType;/* = mProcess->getVarType(i.getName());*/
         i.setType(likelyType.isEmpty() ? "<No info>" : likelyType);
         addTreeChild(parrent, i, prefix, false);
     }
@@ -110,7 +111,8 @@ void MainWindow::moidifyTreeItemPointer(QTreeWidgetItem *itemPointer)
 
     QString drfName = tr("(*%1)").arg(pointer.getName());
     QString drfAddressContent = mProcess->getVarContent(drfName);
-    QString drfAddressType = mProcess->getVarType(drfName);
+    throw;
+    QString drfAddressType;/* = mProcess->getVarType(drfName);*/
     Variable drfPointer(drfName, drfAddressType, drfAddressContent);
 
     QTreeWidgetItem* child = itemPointer->child(0); //Pointer's node always has ony one shils so it's index is '0'
@@ -239,7 +241,6 @@ void MainWindow::slotShowLocal()
 void MainWindow::slotUpdtaeLocals()
 {
     mProcess->updateVariable64x();
-
 }
 
 void MainWindow::slotShowVariables()
@@ -250,6 +251,7 @@ void MainWindow::slotShowVariables()
     {
         //addTreeRoot(i);
         ui->designOutput->appendPlainText(tr("%1\t%2\t%3").arg(i.getName()).arg(i.getContent()).arg(i.getType()));
+        mProcess->getVarType(i);
 //        ui->designOutput->appendPlainText(QString("Name: %1 Value: %2 Type: %3").arg(i.getName())
 //                                          .arg(i.getContent()).arg(i.getType()));
 //        std::vector<Variable> nestedTypes = i.getNestedTypes();
@@ -263,9 +265,15 @@ void MainWindow::slotShowVariables()
     }
 }
 
+void MainWindow::slotTypeUpdated(Variable var)
+{
+    ui->designOutput->appendPlainText(tr("%1\t%2\t%3").arg(var.getName()).arg(var.getContent()).arg(var.getType()));
+}
+
 void MainWindow::slotGetVarType()
 {
-    mProcess->getVarType("conj.digit");
+    throw;
+//    mProcess->getVarType("conj.digit");
 }
 
 void MainWindow::slotReadPointer()

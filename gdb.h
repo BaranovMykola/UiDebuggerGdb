@@ -6,6 +6,7 @@
 #include <QStringList>
 
 #include <vector>
+#include <queue>
 
 #include "breakpoint.h"
 #include "variable.h"
@@ -45,7 +46,7 @@ public:
     std::vector<Breakpoint> getBreakpoints()const;
     std::vector<Variable> getLocalVariables()const;
     QString getVarContent(const QString& var);
-    QString getVarType(const QString& variable);
+    QString getVarType(Variable var);
     void updateCertainVariables(QStringList varList);
     QStringList getVariablesFrom(QStringList frame);
     QStringList getVariableList(const QString& frames);
@@ -63,6 +64,7 @@ signals:
     void signalLocalVarRecieved(const QString&);
     void signalErrorOccured(const QString&);
     void signalUpdatedVariables();
+    void signalTypeUpdated(Variable var);
 private:
     QFile mGdbFile;
     QString mErrorMessage;
@@ -76,6 +78,7 @@ private:
     bool mWhatisCaptured;
     QString mWhatisBuffer;
     bool collect;
+    std::queue<Variable> mVariableTypeQueue;
 };
 
 #endif // GDB_H

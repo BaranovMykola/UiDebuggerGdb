@@ -42,6 +42,7 @@ private slots:
     void slotUpdtaeLocals();
 
     void slotShowVariables();
+    void slotTypeUpdated(Variable var);
 
     void slotGetVarType();
     void slotReadPointer();
