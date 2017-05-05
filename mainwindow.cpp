@@ -245,6 +245,7 @@ void MainWindow::slotUpdtaeLocals()
 
 void MainWindow::slotShowVariables()
 {
+    ui->designOutput->clear();
     auto locals = mProcess->getLocalVariables();
     ui->treeWidget->clear();
     for(auto i : locals)

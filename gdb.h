@@ -7,6 +7,7 @@
 
 #include <vector>
 #include <queue>
+#include <list>
 
 #include "breakpoint.h"
 #include "variable.h"
@@ -78,7 +79,7 @@ private:
     bool mWhatisCaptured;
     QString mWhatisBuffer;
     bool collect;
-    std::queue<Variable> mVariableTypeQueue;
+    std::list<Variable> mVariableTypeQueue;
 };
 
 #endif // GDB_H

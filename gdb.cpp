@@ -129,9 +129,13 @@ void Gdb::readType(const QString &varName)
     //        auto changeTypeVar = std::find_if(mVariablesList.begin(), mVariablesList.end(), [&](Variable v){return v.getName() == bareName;});
     //        changeTypeVar->setType(bareType);
 
-        mVariableTypeQueue.front().setType(bareType);
-        emit signalTypeUpdated(mVariableTypeQueue.front());
-        mVariableTypeQueue.pop();
+//        mVariableTypeQueue.front().setType(bareType);
+//        emit signalTypeUpdated(mVariableTypeQueue.front());
+//        mVariableTypeQueue.pop();
+        auto var = find_if(mVariableTypeQueue.begin(), mVariableTypeQueue.end(), [&](Variable var){return var.getName() == bareName;});
+        var->setType(bareType);
+        emit signalTypeUpdated(*var);
+        mVariableTypeQueue.remove_if([&](Variable var){return var.getName() == bareName;});
 
         int h = 0;
 //        qDebug() << nameStr;
@@ -362,7 +366,7 @@ QString Gdb::getVarType(Variable var)
         ^done
     */
     write(QByteArray("whatis ").append(var.getName()));
-    mVariableTypeQueue.push(var);
+    mVariableTypeQueue.push_back(var);
 //    QProcess::waitForReadyRead(1000);
 //    QRegExp findType("type\\s\\=\\s[\\w:\\*\\s\\<\\>\\,]+"); // find string after 'type = ' included only characters,
 //                                                 // digits, uderscores, '*' and whitespaces
