@@ -103,7 +103,7 @@ void Gdb::readStdOutput()
 //        qDebug() << "[READ STD]: 'info' captured";
 //        qDebug() << mBuffer << "\n\n";
         mInfoCaptured = true;
-        mVariablesList.clear();
+
     }
     if(mInfoCaptured)
     {
@@ -528,7 +528,9 @@ QStringList Gdb::getVariableListFromContext(const QString &context)
 
 void Gdb::updateVariable64x()
 {
+    mVariablesList.clear();
     write(QByteArray("info local"));
+    write(QByteArray("info arg"));
 }
 
 void Gdb::globalUpdate()
