@@ -221,7 +221,6 @@ void Gdb::updateVariableFromBuffer()
             mVariablesList.emplace_back(splittedBuffer[0].replace(clean, ""), "", content);
         }
     }
-
 }
 
 void Gdb::readErrOutput()

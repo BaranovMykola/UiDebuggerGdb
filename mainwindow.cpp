@@ -87,6 +87,7 @@ void MainWindow::addTreeChild(QTreeWidgetItem *parent, Variable var, QString pre
     QString plainName = var.getName().split('.').last();
     treeItem->setText(0, plainName);
     treeItem->setText(1, var.getContent());
+    treeItem->setText(2, var.getType());
     if(!internal)
     {
         addTreeChildren(treeItem, var, prefix);
@@ -123,24 +124,12 @@ void MainWindow::addTreeChildren(QTreeWidgetItem *parrent, Variable var, QString
 void MainWindow::moidifyTreeItemPointer(QTreeWidgetItem *itemPointer)
 {   //remove helper node and attachs content of dereferenced pointer
     Variable pointer = mPointersName[itemPointer];
-    qDebug() << "Dereferencing...";
     QString drfName = tr("(*%1)").arg(pointer.getName());
-    //QString drfAddressContent = mProcess->getVarContent(drfName);
-    //throw;
-    //QString drfAddressType = QString();/* = mProcess->getVarType(drfName);*/
     Variable drfPointer(drfName, "", "");
     mPointersContent[drfPointer] = itemPointer;
     mProcess->getVarContent(drfName);
     QTreeWidgetItem* child = itemPointer->child(0); //Pointer's node always has ony one shils so it's index is '0'
     itemPointer->removeChild(child);    //remove internal node in tree
-
-//    if(drfPointer.getNestedTypes().size() == 0 && !drfPointer.isPointer())
-//    {
-//        addTreeChild(itemPointer, drfPointer, "", false);
-//        qDebug() << "drfPointer has only one nested type && it's not pointer";
-//        return;
-//    }
-//    addTreeChildren(itemPointer, drfPointer, "", true);   //append dereferenced pointer to node with addres
 }
 
 // target exec D:\Studying\Programming\Qt\My Project\build-UiDebuggerGdb-Custom_Kit-Debug\debug\gdb\gdb.exe
@@ -291,7 +280,10 @@ void MainWindow::slotTypeUpdated(Variable var)
                             {
                                 return (var.getName() == item.first.getName());
                             })->second);
-
+        if(var.isPointer())
+        {
+            var.setContent(var.getContent().replace(tr("(%1)").arg(var.getType()), ""));
+        }
         auto nestedTypes = var.getNestedTypes();
         bool isNotPointer = !var.isPointer();
         if(nestedTypes.size() == 0 && isNotPointer)
