@@ -42,23 +42,24 @@ void Gdb::write(QByteArray &command)
 void Gdb::readStdOutput()
 {   //Reads all standart output from GDB
     mBuffer = QProcess::readAll();
-//    qDebug() << mBuffer;
-    QRegExp errorMatch("\\^error");
-    QRegExp info("info\\s");
-    QRegExp doneOrError("\\^done|\\^error");
-    QRegExp whatis("whatis\\s");
-    QRegExp printRegex("print\\s");
-    QRegExp breakpoint("\\*stopped,reason=\"breakpoint-hit\"");
-    QRegExp line("line=\"\\d+\"");
+    QRegExp errorMatch("\\^error"); // match '^error' literally
+    QRegExp info("info\\s"); // match '^info ' literally
+    QRegExp doneOrError("\\^done|\\^error"); // match '^done' or '^error' literally
+    QRegExp whatis("whatis\\s"); // match 'whatis ' literally
+    QRegExp printRegex("print\\s"); // match 'print ' literally
+    QRegExp breakpoint("\\*stopped,reason=\"breakpoint-hit\""); // match breakpoint stops
+    QRegExp line("line=\"\\d+\""); // match line='$_digits_$'
+
     if(breakpoint.indexIn(mBuffer) != -1)
-    {
+    {   // if GDB matches breakpoint
         line.indexIn(mBuffer);
-        QString lineStr = line.cap();
+        QString lineStr = line.cap(); // line="123"
         int firstQuote = lineStr.indexOf(tr("\""));
         int lastQuote = lineStr.indexOf("\"", firstQuote+1);
         QString bareLine = lineStr.mid(firstQuote+1, lastQuote-firstQuote-1);
         emit signalBreakpointHit(bareLine.toInt());
     }
+
     bool doubleContext = false;
     if(printRegex.indexIn(mBuffer) != -1 || mPrintCaptured)
     {
