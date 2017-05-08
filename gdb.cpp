@@ -48,6 +48,17 @@ void Gdb::readStdOutput()
     QRegExp doneOrError("\\^done|\\^error");
     QRegExp whatis("whatis\\s");
     QRegExp printRegex("print\\s");
+    QRegExp breakpoint("\\*stopped,reason=\"breakpoint-hit\"");
+    QRegExp line("line=\"\\d+\"");
+    if(breakpoint.indexIn(mBuffer) != -1)
+    {
+        line.indexIn(mBuffer);
+        QString lineStr = line.cap();
+        int firstQuote = lineStr.indexOf(tr("\""));
+        int lastQuote = lineStr.indexOf("\"", firstQuote+1);
+        QString bareLine = lineStr.mid(firstQuote+1, lastQuote-firstQuote-1);
+        emit signalBreakpointHit(bareLine.toInt());
+    }
     bool doubleContext = false;
     if(printRegex.indexIn(mBuffer) != -1 || mPrintCaptured)
     {

@@ -4,6 +4,8 @@
 #include <QProcess>
 #include <QDebug>
 #include <QTextStream>
+#include <QMessageBox>
+
 #include <algorithm>
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -39,13 +41,13 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(mProcess, SIGNAL(signalUpdatedVariables()), this, SLOT(slotShowVariables()), Qt::UniqueConnection);
     connect(mProcess, SIGNAL(signalTypeUpdated(Variable)), this, SLOT(slotTypeUpdated(Variable)), Qt::UniqueConnection);
     connect(mProcess, SIGNAL(signalContentUpdated(Variable)), this, SLOT(slotDereferenceVar(Variable)), Qt::UniqueConnection);
-
+    connect(mProcess, SIGNAL(signalBreakpointHit(int)), this, SLOT(slotBreakpointHit(int)), Qt::UniqueConnection);
     QFile file(qApp->applicationDirPath().append("/gdb/gdb.exe"));
     qDebug() << "File exist: " << (file.exists());
     mProcess->start(QStringList() << "--interpreter=mi");
 
 //    ui->command->setText("target exec debug/gdbx64/main.exe");
-    mProcess->openProject("debug/gdbx64/pairs.exe");
+    mProcess->openProject("debug/gdbx64/avl.exe");
     mProcess->setBreakPoint(13);
     mProcess->run();
     ui->command->setFocus();
@@ -342,7 +344,15 @@ void MainWindow::slotDereferenceTypeVar(Variable var)
 //            qDebug() << "drfPointer has only one nested type && it's not pointer";
 //            return;
 //    }
-//    addTreeChildren(itemPointer, var, "", true);   //append dereferenced pointer to node with addres
+    //    addTreeChildren(itemPointer, var, "", true);   //append dereferenced pointer to node with addres
+}
+
+void MainWindow::slotBreakpointHit(int line)
+{
+    QMessageBox msg;
+    msg.setText(tr("Programm hit breakpoint at %1 line").arg(QString::number(line)));
+    msg.exec();
+    slotUpdtaeLocals();
 }
 
 void MainWindow::slotGetVarType()

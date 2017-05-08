@@ -63,6 +63,7 @@ public slots:
     void slotReadStdOutput();
     void slotReadErrOutput();
 signals:
+    void signalBreakpointHit(int line);
     void signalLocalVarRecieved(const QString&);
     void signalErrorOccured(const QString&);
     void signalUpdatedVariables();

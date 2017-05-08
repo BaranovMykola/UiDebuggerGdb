@@ -51,6 +51,7 @@ private slots:
     void slotTypeUpdated(Variable var);
     void slotDereferenceVar(Variable var);
     void slotDereferenceTypeVar(Variable var);
+    void slotBreakpointHit(int line);
 
     void slotGetVarType();
     void slotReadPointer();
