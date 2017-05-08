@@ -147,33 +147,20 @@ void Gdb::readType(const QString &varName)
 
 void Gdb::readContent(const QString &context)
 {
-    QRegExp name("print\\s[\\w.*)(]+");
-    name.indexIn(context);
-    QString nameStr = name.cap();
-    QString bareName = nameStr.split(' ')[1].trimmed();
-
-    QRegExp content("\(\=.*\)\(\(\\^\)done\)"); // match string beginning with '= ' and ending with '^done'
-    // \(\\^\)done
-    // \\s\=.*
-    //QRegExp content("\\s=.*(\^)done"); // match string beginning with '= ' and ending with '^done'
-
+    QRegExp findName("print\\s[\\w.*)(]+");
+    QRegExp content("=.*\\^done"); // match string beginning with '= ' and ending with '^done'
     QRegExp clean("[\\\\\"|~]"); // find all garbage characters '\', '"', '~'
-    QRegExp pointerMatch("\\(.*\\s*\\)\\s0x[\\d+abcdef]+"); // try to regonize pointer content
-                                                          // (SOME_TYPE *) 0x6743hf2
-//    if(pointerMatch.indexIn(context) != -1)
-//    {
-//      QString addres = pointerMatch.cap().split(' ').last();  // get only hex addres
-//      //emit signalContentUpdated(Variable());
-//    }
+
+    findName.indexIn(context);
+    QString badName = findName.cap();
+    QString bareName = badName.split(' ')[1].trimmed();
+
     content.indexIn(context);
     QString bareRes = content.cap();
     QString firstMatches = bareRes.split(QString("^done")).first();
-//    qDebug() << "context = " << context;
-//    qDebug() << "bareRes = " << bareRes;
-//    qDebug() << "firstMAthces = " << firstMatches;
-//    qDebug() << "name = " <<
     QString res = firstMatches.replace(clean, "").replace("^done", "").trimmed();
     res.resize(res.size()-1); // last character is garbate too
+
     /* Removed all line breaks */
     auto lst = res.split('\n');
     for(QString& i : lst)
@@ -182,8 +169,6 @@ void Gdb::readContent(const QString &context)
     }
     QString withoutLines = lst.join(""); // complete one QString again
     withoutLines.remove(0, 2); // first two charactes are garbage too '= '
-    //return withoutLines;
-//    qDebug() << withoutLines;
     emit signalContentUpdated(Variable(bareName, "", withoutLines));
 }
 
