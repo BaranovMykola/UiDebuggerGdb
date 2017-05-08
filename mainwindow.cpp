@@ -46,6 +46,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
 //    ui->command->setText("target exec debug/gdbx64/main.exe");
     mProcess->openProject("debug/gdbx64/pairs.exe");
+    mProcess->setBreakPoint(13);
+    mProcess->run();
     ui->command->setFocus();
     ui->treeWidget->setColumnCount(3);
 }

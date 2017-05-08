@@ -2,6 +2,7 @@
 
 #include <QRegExp>
 #include <QDebug>
+#include <QString>
 
 Variable::Variable()
 {
@@ -165,8 +166,11 @@ void Variable::setType(const QString &type)
 
 bool Variable::isPointer() const
 {
-    QRegExp pointersMathc("\\*");
-    return pointersMathc.indexIn(mType) != -1;
+//    QRegExp pointersMathc("\\*");
+//    return pointersMathc.indexIn(mType) != -1;
+    int lastStar = mType.lastIndexOf(QString("*"));
+    int lastCharacter = mType.length()-1;
+    return  lastStar == lastCharacter && lastStar != -1;
 }
 
 void Variable::setContent(const QString &content)
