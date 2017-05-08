@@ -23,15 +23,9 @@ public:
     void write(QByteArray &command);
     void readStdOutput();
 
-public slots:
-    void readFrame();
-    void readType(const QString& varName);
-    void readPrint(const QString& context);
 public:
-
     QString getVarContentFromContext(const QString& context);
-    void updateVariablesInFrame32x(const QString &frame);
-
+    void updateVariableFromBuffer();
     void readErrOutput();
     const QString& getOutput()const;
     void openProject(const QString& fileName);
@@ -52,16 +46,18 @@ public:
     void updateCertainVariables(QStringList varList);
     QStringList getVariablesFrom(QStringList frame);
     QStringList getVariableList(const QString& frames);
-
     QStringList getVariableListFromContext(const QString& context);
-
-    void updateVariable64x();
-
     void globalUpdate();
     void setGdbPath(const QString& path);
+
+    void readType(const QString& varName);
+    void readContent(const QString& context);
+    void updateVariable64x();
+
 public slots:
     void slotReadStdOutput();
     void slotReadErrOutput();
+
 signals:
     void signalBreakpointHit(int line);
     void signalLocalVarRecieved(const QString&);

@@ -68,7 +68,7 @@ void Gdb::readStdOutput()
     }
     if(mPrintCaptured && doneOrError.indexIn(mBuffer) != -1)
     {
-        readPrint(mPrintBuffer);
+        readContent(mPrintBuffer);
         mPrintCaptured = false;
         mPrintBuffer.clear();
     }
@@ -93,7 +93,7 @@ void Gdb::readStdOutput()
     if(info.indexIn(mBuffer) != -1 || mInfoCaptured)
     {
         mInfoCaptured = true;
-        readFrame();
+        updateVariableFromBuffer();
     }
     if(doneOrError.indexIn(mBuffer) != -1 && mInfoCaptured)
     {
@@ -101,6 +101,7 @@ void Gdb::readStdOutput()
         emit signalUpdatedVariables();
     }
 
+    /*error capturing section*/
     if(errorMatch.indexIn(mBuffer) != -1)
     {
         QRegExp errorMsg("msg=.*\\(gdb\\)");
@@ -119,60 +120,32 @@ void Gdb::readStdOutput()
     emit signalReadyReadGdb();
 }
 
-void Gdb::readFrame()
-{
-//    qDebug() << "[READ FRAME] mBuffer = " << mBuffer << "\n";
-    updateVariablesInFrame32x("smth unused...");
-}
-
 void Gdb::readType(const QString &varName)
 {
-//    qDebug() << "Processing\n\n" << varName;
     QRegExp findType("type\\s\\=\\s[\\w:\\*\\s\\<\\>\\,]+"); // find string after 'type = ' included only characters,
                                                  // digits, uderscores, '*' and whitespaces
-    QRegExp name("whatis\\s[\\w.)(*]+");
-    int pos = 0;
-//    qDebug() << "[READ STD] Processing " << varName;
+    QRegExp findName("whatis\\s[\\w.)(*]+");
+    int pos = -1;
     do
     {
-        name.indexIn(varName, pos+1);
+        findName.indexIn(varName, pos+1);
         pos = findType.indexIn(varName, pos+1);
         if(pos != -1)
         {
-        QString type = findType.cap();
-        QString bareType = type.split('=')[1].trimmed(); // type is string after 'type = '
-//        qDebug() << "[READ TYPE] Captured type: " << type;
-        QString nameStr = name.cap();
-        QString bareName = nameStr.split(' ')[1].trimmed();
-//        qDebug() << bareName << " = " << bareType;
-    //        auto changeTypeVar = std::find_if(mVariablesList.begin(), mVariablesList.end(), [&](Variable v){return v.getName() == bareName;});
-    //        changeTypeVar->setType(bareType);
-
-//        mVariableTypeQueue.front().setType(bareType);
-//        emit signalTypeUpdated(mVariableTypeQueue.front());
-//        mVariableTypeQueue.pop();
-        auto var = find_if(mVariableTypeQueue.begin(), mVariableTypeQueue.end(), [&](Variable var){return var.getName() == bareName;});
-        var->setType(bareType);
-        auto pvar = *var;
-        emit signalTypeUpdated(*var);
-        mVariableTypeQueue.erase(var);
-
-//        qDebug() << nameStr;
-//        qDebug() << nameString << " - " << bareType;
-        }
-        else
-        {
-//            qDebug() << "[READ TYPE] Not found anything at " << varName;
+            QString type = findType.cap();
+            QString bareType = type.split('=')[1].trimmed(); // type is string after 'type = '
+            QString nameStr = findName.cap();
+            QString bareName = nameStr.split(' ')[1].trimmed();
+            auto var = find_if(mVariableTypeQueue.begin(), mVariableTypeQueue.end(), [&](Variable var){return var.getName() == bareName;});
+            var->setType(bareType);
+            emit signalTypeUpdated(*var);
+            mVariableTypeQueue.erase(var);
         }
     }
     while(pos != -1);
-    if(std::all_of(mVariablesList.begin(), mVariablesList.end(), [](Variable v){return !v.getType().isEmpty();}))
-    {
-     //   emit signalUpdatedVariables();
-    }
 }
 
-void Gdb::readPrint(const QString &context)
+void Gdb::readContent(const QString &context)
 {
     QRegExp name("print\\s[\\w.*)(]+");
     name.indexIn(context);
@@ -238,19 +211,19 @@ QString Gdb::getVarContentFromContext(const QString &context)
     return withoutLines;
 }
 
-void Gdb::updateVariablesInFrame32x(const QString &frame)
-{   // Read variables from frame $frame$
+void Gdb::updateVariableFromBuffer()
+{   // Read variables from mBuffer with their content
     QRegExp clean("~|\"|\\s|=");// find all garbage character
 
     QStringList vars = mBuffer.split("\\n");
     for(auto i : vars)
     {
-        QStringList broke = i.split(" = ");
+        QStringList splittedBuffer = i.split(" = ");
         QString value;
-        for(int i=1;i<broke.size();++i)
+        for(int i=1;i<splittedBuffer.size();++i)
         {
-            value.append(broke[i]);
-            if(i+1 != broke.size())
+            value.append(splittedBuffer[i]);
+            if(i+1 != splittedBuffer.size())
             {
                 value.append(" = ");
             }
@@ -260,7 +233,7 @@ void Gdb::updateVariablesInFrame32x(const QString &frame)
         QString content = getVarContentFromContext(value);
         if(!content.isEmpty())
         {
-            mVariablesList.emplace_back(broke[0].replace(clean, ""), "", content);
+            mVariablesList.emplace_back(splittedBuffer[0].replace(clean, ""), "", content);
         }
     }
 
