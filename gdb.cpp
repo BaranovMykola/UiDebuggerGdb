@@ -49,7 +49,7 @@ void Gdb::readStdOutput()
     QRegExp whatis("whatis\\s");
     QRegExp printRegex("print\\s");
     bool doubleContext = false;
-    if(printRegex.indexIn(mBuffer) != -1)
+    if(printRegex.indexIn(mBuffer) != -1 || mPrintCaptured)
     {
         doubleContext = true;
         mPrintCaptured = true;
