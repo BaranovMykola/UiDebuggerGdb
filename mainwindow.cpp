@@ -45,7 +45,7 @@ MainWindow::MainWindow(QWidget *parent) :
     mProcess->start(QStringList() << "--interpreter=mi");
 
 //    ui->command->setText("target exec debug/gdbx64/main.exe");
-    mProcess->openProject("debug/gdbx64/main.exe");
+    mProcess->openProject("debug/gdbx64/pairs.exe");
     ui->command->setFocus();
     ui->treeWidget->setColumnCount(3);
 }
@@ -300,9 +300,11 @@ void MainWindow::slotTypeUpdated(Variable var)
         {
                 addTreeChild(itemPointer, var, "", false);
                 qDebug() << "drfPointer has only one nested type && it's not pointer";
+                mPointersContent.erase(iterator);
                 return;
         }
         addTreeChildren(itemPointer, var, "", true);   //append dereferenced pointer to node with addres
+        mPointersContent.erase(iterator);
     }
     else
     {
