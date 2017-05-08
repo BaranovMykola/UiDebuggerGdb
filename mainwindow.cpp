@@ -16,7 +16,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
 
     connect(mProcess, SIGNAL(signalReadyReadGdb()), this, SLOT(slotReadOutput()), Qt::UniqueConnection);
-    connect(mProcess, SIGNAL(readyReadStandardError()), this, SLOT(slotReadOutput()), Qt::UniqueConnection);
+    connect(mProcess, SIGNAL(signalErrorOccured(QString)), this, SLOT(slotErrorOccured(QString)), Qt::UniqueConnection);
     connect(mProcess, SIGNAL(signalLocalVarRecieved(QString)), this, SLOT(slotReadLocalVar(QString)), Qt::UniqueConnection);
     connect(ui->command, SIGNAL(returnPressed()), this, SLOT(slotWriteToProcess()), Qt::UniqueConnection);
     connect(ui->butLocalVar, SIGNAL(clicked(bool)), this, SLOT(slotGetLocalVar()), Qt::UniqueConnection);
@@ -355,6 +355,11 @@ void MainWindow::slotBreakpointHit(int line)
     msg.setText(tr("Programm hit breakpoint at %1 line").arg(QString::number(line)));
     msg.exec();
     slotUpdtaeLocals();
+}
+
+void MainWindow::slotErrorOccured(QString error)
+{
+    ui->designOutput->appendPlainText(error);
 }
 
 void MainWindow::slotGetVarType()

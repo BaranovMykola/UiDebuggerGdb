@@ -52,6 +52,7 @@ private slots:
     void slotDereferenceVar(Variable var);
     void slotDereferenceTypeVar(Variable var);
     void slotBreakpointHit(int line);
+    void slotErrorOccured(QString error);
 
     void slotGetVarType();
     void slotReadPointer();

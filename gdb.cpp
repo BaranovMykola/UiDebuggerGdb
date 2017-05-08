@@ -60,81 +60,61 @@ void Gdb::readStdOutput()
         emit signalBreakpointHit(bareLine.toInt());
     }
 
-    bool doubleContext = false;
+    /*print capturing section*/
     if(printRegex.indexIn(mBuffer) != -1 || mPrintCaptured)
     {
-        doubleContext = true;
         mPrintCaptured = true;
         mPrintBuffer.append(mBuffer);
     }
     if(mPrintCaptured && doneOrError.indexIn(mBuffer) != -1)
     {
-        if(!doubleContext)
-        {
-            mPrintBuffer.append(mBuffer);
-        }
         readPrint(mPrintBuffer);
         mPrintCaptured = false;
+        mPrintBuffer.clear();
     }
+
+    /*whatis capturing section*/
     if(whatis.indexIn(mBuffer) != -1 || mWhatisCaptured)
-    {
-        //qDebug() << "[READ STD] Finding type of variable";
-      //  qDebug() << mBuffer;
+    { // is 'whatis' appears in output
         mWhatisBuffer.append(mBuffer);
         mWhatisCaptured = true;
     }
     int lastDoneorError = mWhatisBuffer.lastIndexOf("^done");
     int lastWhatis = mWhatisBuffer.lastIndexOf("whatis");
-//    qDebug () << mWhatisBuffer;
-//    qDebug() << "laswt whatis = " << lastWhatis << "\tlast done or error = " << lastDoneorError;
-//    if(lastWhatis == -1)
-//    {
-//        lastWhatis = +1;
-//    }
     if(doneOrError.indexIn(mBuffer) != -1 && mWhatisCaptured
-            && lastWhatis < lastDoneorError)
+            && lastWhatis < lastDoneorError) // if 'whatis' does not appear after ^done again
     {
-       // qDebug() << "Try to read types from : " << mWhatisBuffer;
         mWhatisCaptured = false;
         readType(mWhatisBuffer);
         mWhatisBuffer.clear();
     }
-    if(info.indexIn(mBuffer) != -1)
-    {
-//        qDebug() << "[READ STD]: 'info' captured";
-//        qDebug() << mBuffer << "\n\n";
-        mInfoCaptured = true;
 
-    }
-    if(mInfoCaptured)
+    /*info capturing section*/
+    if(info.indexIn(mBuffer) != -1 || mInfoCaptured)
     {
+        mInfoCaptured = true;
         readFrame();
     }
     if(doneOrError.indexIn(mBuffer) != -1 && mInfoCaptured)
     {
-//        qDebug() << "[READ STD]: '(gdb)' captured. Ended reading frame";
-//        qDebug() << mBuffer << "\n\n";
         mInfoCaptured = false;
         emit signalUpdatedVariables();
     }
 
-    if(collect)
-    {
-        temp.append(mBuffer);
-        if(doneOrError.indexIn(mBuffer) != -1)
-        {
-            collect = false;
-//            qDebug() << temp;
-            getVariableListFromContext(temp);
-        }
-    }
     if(errorMatch.indexIn(mBuffer) != -1)
     {
-        qDebug() << "error matched";
-        QRegExp errorMsg("msg=[\\w\\s\"]+");
-        errorMsg.indexIn(mBuffer);
-        mErrorMessage = errorMsg.cap();
-        emit signalErrorOccured(mErrorMessage);
+        QRegExp errorMsg("msg=.*\\(gdb\\)");
+        int pos = -1;
+        do
+        {
+            pos = errorMsg.indexIn(mBuffer, pos+1);
+            mErrorMessage = errorMsg.cap();
+            mErrorMessage.replace(tr("msg=\""), "");
+            mErrorMessage.replace(tr("(gdb)"), "");
+            mErrorMessage.remove(mErrorMessage.length()-2, 1);
+            emit signalErrorOccured(mErrorMessage);
+        }
+        while(pos != -1);
     }
     emit signalReadyReadGdb();
 }
@@ -231,7 +211,6 @@ void Gdb::readPrint(const QString &context)
     withoutLines.remove(0, 2); // first two charactes are garbage too '= '
     //return withoutLines;
 //    qDebug() << withoutLines;
-    mPrintBuffer.clear();
     emit signalContentUpdated(Variable(bareName, "", withoutLines));
 }
 
