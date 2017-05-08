@@ -13,7 +13,7 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    connect(mProcess, SIGNAL(readyReadStandardOutput()), this, SLOT(slotReadOutput()), Qt::UniqueConnection);
+    connect(mProcess, SIGNAL(signalReadyReadGdb()), this, SLOT(slotReadOutput()), Qt::UniqueConnection);
     connect(mProcess, SIGNAL(readyReadStandardError()), this, SLOT(slotReadOutput()), Qt::UniqueConnection);
     connect(mProcess, SIGNAL(signalLocalVarRecieved(QString)), this, SLOT(slotReadLocalVar(QString)), Qt::UniqueConnection);
     connect(ui->command, SIGNAL(returnPressed()), this, SLOT(slotWriteToProcess()), Qt::UniqueConnection);
@@ -38,6 +38,8 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->butStopExecuting, SIGNAL(clicked(bool)), this, SLOT(slotStipExecuting()), Qt::UniqueConnection);
     connect(mProcess, SIGNAL(signalUpdatedVariables()), this, SLOT(slotShowVariables()), Qt::UniqueConnection);
     connect(mProcess, SIGNAL(signalTypeUpdated(Variable)), this, SLOT(slotTypeUpdated(Variable)), Qt::UniqueConnection);
+    connect(mProcess, SIGNAL(signalContentUpdated(Variable)), this, SLOT(slotDereferenceVar(Variable)), Qt::UniqueConnection);
+
     QFile file(qApp->applicationDirPath().append("/gdb/gdb.exe"));
     qDebug() << "File exist: " << (file.exists());
     mProcess->start(QStringList() << "--interpreter=mi");
@@ -72,7 +74,10 @@ void MainWindow::addTreeChild(QTreeWidgetItem *parent, Variable var, QString pre
 {
     QTreeWidgetItem *treeItem = new QTreeWidgetItem();
     mTypeVar[var] = treeItem;
-    mProcess->getVarType(var);
+    if(!internal)
+    {
+        mProcess->getVarType(var);
+    }
 
 
     QString plainName = var.getName().split('.').last();
@@ -116,20 +121,22 @@ void MainWindow::moidifyTreeItemPointer(QTreeWidgetItem *itemPointer)
     Variable pointer = mPointersName[itemPointer];
 
     QString drfName = tr("(*%1)").arg(pointer.getName());
-    QString drfAddressContent = mProcess->getVarContent(drfName);
+    //QString drfAddressContent = mProcess->getVarContent(drfName);
     //throw;
-    QString drfAddressType = QString();/* = mProcess->getVarType(drfName);*/
-    Variable drfPointer(drfName, drfAddressType, drfAddressContent);
-
+    //QString drfAddressType = QString();/* = mProcess->getVarType(drfName);*/
+    Variable drfPointer(drfName, "", "");
+    mPointersContent[drfPointer] = itemPointer;
+    mProcess->getVarContent(drfName);
     QTreeWidgetItem* child = itemPointer->child(0); //Pointer's node always has ony one shils so it's index is '0'
     itemPointer->removeChild(child);    //remove internal node in tree
-    if(drfPointer.getNestedTypes().size() == 0 && !drfPointer.isPointer())
-    {
-        addTreeChild(itemPointer, drfPointer, "", false);
-        qDebug() << "drfPointer has only one nested type && it's not pointer";
-        return;
-    }
-    addTreeChildren(itemPointer, drfPointer, "", true);   //append dereferenced pointer to node with addres
+
+//    if(drfPointer.getNestedTypes().size() == 0 && !drfPointer.isPointer())
+//    {
+//        addTreeChild(itemPointer, drfPointer, "", false);
+//        qDebug() << "drfPointer has only one nested type && it's not pointer";
+//        return;
+//    }
+//    addTreeChildren(itemPointer, drfPointer, "", true);   //append dereferenced pointer to node with addres
 }
 
 // target exec D:\Studying\Programming\Qt\My Project\build-UiDebuggerGdb-Custom_Kit-Debug\debug\gdb\gdb.exe
@@ -274,15 +281,63 @@ void MainWindow::slotShowVariables()
 
 void MainWindow::slotTypeUpdated(Variable var)
 {
-    QTreeWidgetItem* item = mTypeVar[var];
-    //qDebug() << item->text(0) << var.getName();
-    item->setText(2, var.getType());
-    if(var.isPointer())
+    qDebug() << "[Type]";
+    auto iterator = (find_if(mPointersContent.begin(), mPointersContent.end(),
+                                    [&](auto item)
+                            {
+                                return (var.getName() == item.first.getName());
+                            }));
+    if(iterator != mPointersContent.end())
     {
-        QString dereferencedVarName = QString("*(%1)").arg(var.getName());
-        addTreeChild(item, var, "", true);   //create fake node to enable expanding parent
-        mPointersName[item] = var;   //Add pointer's node to map and attach to this node pointer
+        qDebug() << "Updated type of dereferenced pointer: " << var.getName();
+        QTreeWidgetItem* itemPointer = (find_if(mPointersContent.begin(), mPointersContent.end(),
+                                    [&](auto item)
+                            {
+                                return (var.getName() == item.first.getName());
+                            })->second);
+        if(var.getNestedTypes().size() == 0 && !var.isPointer())
+        {
+                addTreeChild(itemPointer, var, "", false);
+                qDebug() << "drfPointer has only one nested type && it's not pointer";
+                return;
+        }
+        addTreeChildren(itemPointer, var, "", true);   //append dereferenced pointer to node with addres
     }
+    else
+    {
+        QTreeWidgetItem* item = mTypeVar[var];
+        //qDebug() << item->text(0) << var.getName();
+        item->setText(2, var.getType());
+        if(var.isPointer())
+        {
+            QString dereferencedVarName = QString("*(%1)").arg(var.getName());
+            addTreeChild(item, var, "", true);   //create fake node to enable expanding parent
+            mPointersName[item] = var;   //Add pointer's node to map and attach to this node pointer
+        }
+    }
+
+}
+
+void MainWindow::slotDereferenceVar(Variable var)
+{
+    qDebug() << "var = " << var.getName() << " -> " << var.getContent() << " -> " << var.getType();
+    mProcess->getVarType(var);
+}
+
+void MainWindow::slotDereferenceTypeVar(Variable var)
+{
+//    QTreeWidgetItem* itemPointer = (find_if(mPointersContent.begin(), mPointersContent.end(),
+//                                [&](auto item)
+//                        {
+//                            return (var.getName() == item.first.getName());
+//                        })->second);
+//    if(var.getNestedTypes().size() == 0 && !var.isPointer())
+//    {
+//            addTreeChild(itemPointer, var, "", false);
+//            qDebug() << "drfPointer has only one nested type && it's not pointer";
+//            return;
+//    }
+//    addTreeChildren(itemPointer, var, "", true);   //append dereferenced pointer to node with addres
 }
 
 void MainWindow::slotGetVarType()

@@ -42,6 +42,7 @@ void Gdb::write(QByteArray &command)
 void Gdb::readStdOutput()
 {   //Reads all standart output from GDB
     mBuffer = QProcess::readAll();
+//    qDebug() << mBuffer;
     QRegExp errorMatch("\\^error");
     QRegExp info("info\\s");
     QRegExp doneOrError("\\^done|\\^error");
@@ -63,7 +64,7 @@ void Gdb::readStdOutput()
         readPrint(mPrintBuffer);
         mPrintCaptured = false;
     }
-    if(whatis.indexIn(mBuffer) != -1)
+    if(whatis.indexIn(mBuffer) != -1 || mWhatisCaptured)
     {
         //qDebug() << "[READ STD] Finding type of variable";
       //  qDebug() << mBuffer;
@@ -72,6 +73,12 @@ void Gdb::readStdOutput()
     }
     int lastDoneorError = mWhatisBuffer.lastIndexOf("^done");
     int lastWhatis = mWhatisBuffer.lastIndexOf("whatis");
+    qDebug () << mWhatisBuffer;
+    qDebug() << "laswt whatis = " << lastWhatis << "\tlast done or error = " << lastDoneorError;
+//    if(lastWhatis == -1)
+//    {
+//        lastWhatis = +1;
+//    }
     if(doneOrError.indexIn(mBuffer) != -1 && mWhatisCaptured
             && lastWhatis < lastDoneorError)
     {
@@ -117,6 +124,7 @@ void Gdb::readStdOutput()
         mErrorMessage = errorMsg.cap();
         emit signalErrorOccured(mErrorMessage);
     }
+    emit signalReadyReadGdb();
 }
 
 void Gdb::readFrame()
@@ -127,9 +135,10 @@ void Gdb::readFrame()
 
 void Gdb::readType(const QString &varName)
 {
+//    qDebug() << "Processing\n\n" << varName;
     QRegExp findType("type\\s\\=\\s[\\w:\\*\\s\\<\\>\\,]+"); // find string after 'type = ' included only characters,
                                                  // digits, uderscores, '*' and whitespaces
-    QRegExp name("whatis\\s[\\w.]+");
+    QRegExp name("whatis\\s[\\w.)(*]+");
     int pos = 0;
 //    qDebug() << "[READ STD] Processing " << varName;
     do
@@ -143,7 +152,7 @@ void Gdb::readType(const QString &varName)
 //        qDebug() << "[READ TYPE] Captured type: " << type;
         QString nameStr = name.cap();
         QString bareName = nameStr.split(' ')[1].trimmed();
-        qDebug() << bareName << " = " << bareType;
+//        qDebug() << bareName << " = " << bareType;
     //        auto changeTypeVar = std::find_if(mVariablesList.begin(), mVariablesList.end(), [&](Variable v){return v.getName() == bareName;});
     //        changeTypeVar->setType(bareType);
 
@@ -152,6 +161,7 @@ void Gdb::readType(const QString &varName)
 //        mVariableTypeQueue.pop();
         auto var = find_if(mVariableTypeQueue.begin(), mVariableTypeQueue.end(), [&](Variable var){return var.getName() == bareName;});
         var->setType(bareType);
+        auto pvar = *var;
         emit signalTypeUpdated(*var);
         mVariableTypeQueue.erase(var);
 
@@ -196,6 +206,7 @@ void Gdb::readPrint(const QString &context)
 //    qDebug() << "context = " << context;
 //    qDebug() << "bareRes = " << bareRes;
 //    qDebug() << "firstMAthces = " << firstMatches;
+//    qDebug() << "name = " <<
     QString res = firstMatches.replace(clean, "").replace("^done", "").trimmed();
     res.resize(res.size()-1); // last character is garbate too
     /* Removed all line breaks */
@@ -209,6 +220,7 @@ void Gdb::readPrint(const QString &context)
     //return withoutLines;
     qDebug() << withoutLines;
     mPrintBuffer.clear();
+    emit signalContentUpdated(Variable(bareName, "", withoutLines));
 }
 
 QString Gdb::getVarContentFromContext(const QString &context)
@@ -279,7 +291,7 @@ void Gdb::openProject(const QString &fileName)
 {   //opens file $fileName$ in gdb to debug it via target exec and file
     write(QByteArray("target exec ").append(fileName));
     write(QByteArray("file ").append(fileName));
-    write(QByteArray("set new-console on"));
+//    write(QByteArray("set new-console on"));
 }
 
 void Gdb::run()
@@ -427,6 +439,7 @@ QString Gdb::getVarType(Variable var)
     */
     mVariableTypeQueue.push_back(var);
     write(QByteArray("whatis ").append(var.getName()));
+    qDebug() << "Asked type of " << var.getName();
 //    QProcess::waitForReadyRead(1000);
 //    QRegExp findType("type\\s\\=\\s[\\w:\\*\\s\\<\\>\\,]+"); // find string after 'type = ' included only characters,
 //                                                 // digits, uderscores, '*' and whitespaces

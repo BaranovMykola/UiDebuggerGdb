@@ -49,6 +49,8 @@ private slots:
 
     void slotShowVariables();
     void slotTypeUpdated(Variable var);
+    void slotDereferenceVar(Variable var);
+    void slotDereferenceTypeVar(Variable var);
 
     void slotGetVarType();
     void slotReadPointer();
@@ -63,6 +65,7 @@ private:
     std::list<QTreeWidgetItem*> mPointers;
     std::map<QTreeWidgetItem*, Variable> mPointersName;
     std::map<Variable, QTreeWidgetItem*, VarComp> mTypeVar;
+    std::map<Variable, QTreeWidgetItem*, VarComp> mPointersContent;
 };
 
 #endif // MAINWINDOW_H

@@ -68,6 +68,7 @@ signals:
     void signalUpdatedVariables();
     void signalTypeUpdated(Variable var);
     void signalContentUpdated(Variable var);
+    void signalReadyReadGdb();
 private:
     QFile mGdbFile;
     QString mErrorMessage;
