@@ -235,15 +235,7 @@ void MainWindow::slotShowBreakpoints()
 
 void MainWindow::slotShowVar()
 {
-    try
-    {
-        auto content = mProcess->getVarContent("conj");
-            ui->designOutput->appendPlainText(content);
-    }
-    catch(...)
-    {
-        ui->designOutput->appendPlainText("Exception handled\n");
-    }
+
 }
 
 void MainWindow::slotShowLocal()
@@ -370,7 +362,7 @@ void MainWindow::slotGetVarType()
 
 void MainWindow::slotReadPointer()
 {
-    ui->designOutput->appendPlainText(mProcess->getVarContent("pointer"));
+//    ui->designOutput->appendPlainText(mProcess->getVarContent("pointer"));
 }
 
 void MainWindow::slotTestVariable()

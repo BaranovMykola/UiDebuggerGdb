@@ -22,11 +22,8 @@ public:
                 QProcess::OpenMode mode = QIODevice::ReadWrite);
     void write(QByteArray &command);
     void readStdOutput();
-
-public:
-    QString getVarContentFromContext(const QString& context);
-    void updateVariableFromBuffer();
     void readErrOutput();
+
     const QString& getOutput()const;
     void openProject(const QString& fileName);
     void run();
@@ -41,18 +38,16 @@ public:
     void updateBreakpointsList();
     std::vector<Breakpoint> getBreakpoints()const;
     std::vector<Variable> getLocalVariables()const;
-    QString getVarContent(const QString& var);
+    void getVarContent(const QString& var);
     QString getVarType(Variable var);
-    void updateCertainVariables(QStringList varList);
-    QStringList getVariablesFrom(QStringList frame);
-    QStringList getVariableList(const QString& frames);
-    QStringList getVariableListFromContext(const QString& context);
     void globalUpdate();
     void setGdbPath(const QString& path);
 
     void readType(const QString& varName);
     void readContent(const QString& context);
     void updateVariable64x();
+    void updateVariableFromBuffer();
+    QString getVarContentFromContext(const QString& context);
 
 public slots:
     void slotReadStdOutput();
@@ -81,7 +76,6 @@ private:
     QString mPrintBuffer;
     bool collect;
     std::list<Variable> mVariableTypeQueue;
-    std::list<QString> mPointerContentQueue;
     bool mPrintCaptured;
 };
 
