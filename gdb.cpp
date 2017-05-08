@@ -84,8 +84,8 @@ void Gdb::readStdOutput()
     }
     int lastDoneorError = mWhatisBuffer.lastIndexOf("^done");
     int lastWhatis = mWhatisBuffer.lastIndexOf("whatis");
-    qDebug () << mWhatisBuffer;
-    qDebug() << "laswt whatis = " << lastWhatis << "\tlast done or error = " << lastDoneorError;
+//    qDebug () << mWhatisBuffer;
+//    qDebug() << "laswt whatis = " << lastWhatis << "\tlast done or error = " << lastDoneorError;
 //    if(lastWhatis == -1)
 //    {
 //        lastWhatis = +1;
@@ -123,7 +123,7 @@ void Gdb::readStdOutput()
         if(doneOrError.indexIn(mBuffer) != -1)
         {
             collect = false;
-            qDebug() << temp;
+//            qDebug() << temp;
             getVariableListFromContext(temp);
         }
     }
@@ -229,7 +229,7 @@ void Gdb::readPrint(const QString &context)
     QString withoutLines = lst.join(""); // complete one QString again
     withoutLines.remove(0, 2); // first two charactes are garbage too '= '
     //return withoutLines;
-    qDebug() << withoutLines;
+//    qDebug() << withoutLines;
     mPrintBuffer.clear();
     emit signalContentUpdated(Variable(bareName, "", withoutLines));
 }
@@ -450,7 +450,7 @@ QString Gdb::getVarType(Variable var)
     */
     mVariableTypeQueue.push_back(var);
     write(QByteArray("whatis ").append(var.getName()));
-    qDebug() << "Asked type of " << var.getName();
+//    qDebug() << "Asked type of " << var.getName();
 //    QProcess::waitForReadyRead(1000);
 //    QRegExp findType("type\\s\\=\\s[\\w:\\*\\s\\<\\>\\,]+"); // find string after 'type = ' included only characters,
 //                                                 // digits, uderscores, '*' and whitespaces
@@ -520,7 +520,7 @@ QStringList Gdb::getVariableListFromContext(const QString &context)
         if(!varName.isEmpty())
         {
             varList << varName;
-            qDebug() << varName;
+//            qDebug() << varName;
         }
     }
     return varList;

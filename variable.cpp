@@ -165,9 +165,7 @@ void Variable::setType(const QString &type)
 }
 
 bool Variable::isPointer() const
-{
-//    QRegExp pointersMathc("\\*");
-//    return pointersMathc.indexIn(mType) != -1;
+{   // check is las character is a star - pointer character
     int lastStar = mType.lastIndexOf(QString("*"));
     int lastCharacter = mType.length()-1;
     return  lastStar == lastCharacter && lastStar != -1;

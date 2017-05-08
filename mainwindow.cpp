@@ -43,13 +43,13 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(mProcess, SIGNAL(signalContentUpdated(Variable)), this, SLOT(slotDereferenceVar(Variable)), Qt::UniqueConnection);
     connect(mProcess, SIGNAL(signalBreakpointHit(int)), this, SLOT(slotBreakpointHit(int)), Qt::UniqueConnection);
     QFile file(qApp->applicationDirPath().append("/gdb/gdb.exe"));
-    qDebug() << "File exist: " << (file.exists());
+//    qDebug() << "File exist: " << (file.exists());
     mProcess->start(QStringList() << "--interpreter=mi");
 
 //    ui->command->setText("target exec debug/gdbx64/main.exe");
-    mProcess->openProject("debug/gdbx64/hello_kuzya.exe");
-    //mProcess->setBreakPoint(13);
-    //mProcess->run();
+    mProcess->openProject("debug/gdbx64/pairs.exe");
+    mProcess->setBreakPoint(19);
+    mProcess->run();
     ui->command->setFocus();
     ui->treeWidget->setColumnCount(3);
 }
@@ -105,9 +105,9 @@ void MainWindow::addTreeChildren(QTreeWidgetItem *parrent, Variable var, QString
     {
         addTreeChild(parrent, var, "", false);
     }
-    if(var.isPointer())
+    else if(var.isPointer())
     {
-        QString dereferencedVarName = QString("*(%1)").arg(var.getName());
+                QString dereferencedVarName = QString("*(%1)").arg(var.getName());
         addTreeChild(parrent, var, "", true);   //create fake node to enable expanding parent
         mPointersName[parrent] = var;   //Add pointer's node to map and attach to this node pointer
     }
@@ -123,7 +123,7 @@ void MainWindow::addTreeChildren(QTreeWidgetItem *parrent, Variable var, QString
 void MainWindow::moidifyTreeItemPointer(QTreeWidgetItem *itemPointer)
 {   //remove helper node and attachs content of dereferenced pointer
     Variable pointer = mPointersName[itemPointer];
-
+    qDebug() << "Dereferencing...";
     QString drfName = tr("(*%1)").arg(pointer.getName());
     //QString drfAddressContent = mProcess->getVarContent(drfName);
     //throw;
@@ -285,7 +285,7 @@ void MainWindow::slotShowVariables()
 
 void MainWindow::slotTypeUpdated(Variable var)
 {
-    qDebug() << "[Type]";
+//    qDebug() << "[Type]";
     auto iterator = (find_if(mPointersContent.begin(), mPointersContent.end(),
                                     [&](auto item)
                             {
@@ -293,14 +293,16 @@ void MainWindow::slotTypeUpdated(Variable var)
                             }));
     if(iterator != mPointersContent.end())
     {
-        qDebug() << "Updated type of dereferenced pointer: " << var.getName();
+//        qDebug() << "Updated type of dereferenced pointer: " << var.getName();
         QTreeWidgetItem* itemPointer = (find_if(mPointersContent.begin(), mPointersContent.end(),
                                     [&](auto item)
                             {
                                 return (var.getName() == item.first.getName());
                             })->second);
 
-        if(var.getNestedTypes().size() == 0 && !var.isPointer())
+        auto nestedTypes = var.getNestedTypes();
+        bool isNotPointer = !var.isPointer();
+        if(nestedTypes.size() == 0 && isNotPointer)
         {
                 addTreeChild(itemPointer, var, "", false);
                 qDebug() << "drfPointer has only one nested type && it's not pointer";
