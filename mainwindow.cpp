@@ -249,24 +249,11 @@ void MainWindow::slotShowVariables()
     for(auto i : locals)
     {
         addTreeRoot(i);
-       // ui->designOutput->appendPlainText(tr("%1\t%2\t%3").arg(i.getName()).arg(i.getContent()).arg(i.getType()));
-       // mProcess->getVarType(i);
-//        ui->designOutput->appendPlainText(QString("Name: %1 Value: %2 Type: %3").arg(i.getName())
-//                                          .arg(i.getContent()).arg(i.getType()));
-//        std::vector<Variable> nestedTypes = i.getNestedTypes();
-//        for(auto n : nestedTypes)
-//        {
-//            QString likelyType = mProcess->getVarType(n.getName());
-//            n.setType(likelyType.isEmpty() ? "<No info>" : likelyType);
-//            ui->designOutput->appendPlainText(QString("\tName: %1 Value: %2 Type: %3").arg(n.getName())
-//                                              .arg(n.getContent()).arg(n.getType()));
-//        }
     }
 }
 
 void MainWindow::slotTypeUpdated(Variable var)
 {
-//    qDebug() << "[Type]";
     auto iterator = (find_if(mPointersContent.begin(), mPointersContent.end(),
                                     [&](auto item)
                             {
@@ -274,7 +261,6 @@ void MainWindow::slotTypeUpdated(Variable var)
                             }));
     if(iterator != mPointersContent.end())
     {
-//        qDebug() << "Updated type of dereferenced pointer: " << var.getName();
         QTreeWidgetItem* itemPointer = (find_if(mPointersContent.begin(), mPointersContent.end(),
                                     [&](auto item)
                             {
@@ -289,7 +275,6 @@ void MainWindow::slotTypeUpdated(Variable var)
         if(nestedTypes.size() == 0 && isNotPointer)
         {
                 addTreeChild(itemPointer, var, "", false);
-                qDebug() << "drfPointer has only one nested type && it's not pointer";
                 mPointersContent.erase(iterator);
                 return;
         }
@@ -299,7 +284,6 @@ void MainWindow::slotTypeUpdated(Variable var)
     else
     {
         QTreeWidgetItem* item = mTypeVar[var];
-        //qDebug() << item->text(0) << var.getName();
         item->setText(2, var.getType());
         if(var.isPointer())
         {
@@ -313,24 +297,7 @@ void MainWindow::slotTypeUpdated(Variable var)
 
 void MainWindow::slotDereferenceVar(Variable var)
 {
-    qDebug() << "var = " << var.getName() << " -> " << var.getContent() << " -> " << var.getType();
     mProcess->getVarType(var);
-}
-
-void MainWindow::slotDereferenceTypeVar(Variable var)
-{
-//    QTreeWidgetItem* itemPointer = (find_if(mPointersContent.begin(), mPointersContent.end(),
-//                                [&](auto item)
-//                        {
-//                            return (var.getName() == item.first.getName());
-//                        })->second);
-//    if(var.getNestedTypes().size() == 0 && !var.isPointer())
-//    {
-//            addTreeChild(itemPointer, var, "", false);
-//            qDebug() << "drfPointer has only one nested type && it's not pointer";
-//            return;
-//    }
-    //    addTreeChildren(itemPointer, var, "", true);   //append dereferenced pointer to node with addres
 }
 
 void MainWindow::slotBreakpointHit(int line)

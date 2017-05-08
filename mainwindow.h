@@ -50,7 +50,6 @@ private slots:
     void slotShowVariables();
     void slotTypeUpdated(Variable var);
     void slotDereferenceVar(Variable var);
-    void slotDereferenceTypeVar(Variable var);
     void slotBreakpointHit(int line);
     void slotErrorOccured(QString error);
 
