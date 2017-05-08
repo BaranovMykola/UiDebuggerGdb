@@ -82,7 +82,7 @@ void MainWindow::addTreeChild(QTreeWidgetItem *parent, Variable var, QString pre
 
     QString plainName = var.getName().split('.').last();
     treeItem->setText(0, plainName);
-//    treeItem->setText(1, var.getContent().append(" (%1)").arg(var.getType()));
+    treeItem->setText(1, var.getContent());
     if(!internal)
     {
         addTreeChildren(treeItem, var, prefix);
@@ -295,6 +295,7 @@ void MainWindow::slotTypeUpdated(Variable var)
                             {
                                 return (var.getName() == item.first.getName());
                             })->second);
+
         if(var.getNestedTypes().size() == 0 && !var.isPointer())
         {
                 addTreeChild(itemPointer, var, "", false);
